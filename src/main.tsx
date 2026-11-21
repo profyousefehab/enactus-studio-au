@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './lib/icons';
 import { SessionProvider } from './context/SessionContext';
+import { SessionFeedbackProvider } from './context/SessionFeedbackContext';
+import { GoldenQuestionProvider } from './context/GoldenQuestionContext';
 import App from './App';
 import './index.css';
 
@@ -16,7 +18,11 @@ if (import.meta.env.DEV) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SessionProvider>
-      <App />
+      <SessionFeedbackProvider>
+        <GoldenQuestionProvider>
+          <App />
+        </GoldenQuestionProvider>
+      </SessionFeedbackProvider>
     </SessionProvider>
   </StrictMode>,
 );

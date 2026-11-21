@@ -9,23 +9,23 @@ service cloud.firestore {
     // Collection: goldenQuestions
     // Document ID: 'active' or historical question ID (e.g., 'gq_1711000000000')
     // Fields:
-    //   - questionId: string (required, 1-100 chars) - unique identifier for the question instance
-    //   - question: string (required, 1-1000 chars) - question prompt text
-    //   - options: list of strings (required, 2-10 items, each 1-500 chars) - multiple choice options
-    //   - correctIndex: number (required, index from 0 to options.size() - 1) - index of correct option
-    //   - points: number (required, 0-1000) - reward points for solving
-    //   - isActive: bool (required) - whether the quiz question is currently active/unsolved
-    //   - attemptedBy: list of strings (required, <= 1000 items) - member user IDs who made wrong attempts
-    //   - winnerId: string | null (required) - user ID of member who solved it first, or null
-    //   - winnerName: string | null (required) - display name of winner, or null
-    //   - winnerAvatarId: string | null (optional, <= 100 chars) - avatar identifier of winner
-    //   - winnerCustomAvatarUrl: string | null (optional, <= 2000 chars) - custom avatar image URL
-    //   - winnerTrack: string | null (optional, <= 50 chars) - track of winner ('Design' | 'Content')
-    //   - solvedAt: timestamp | null (required) - timestamp when question was solved, or null
+    //   - questionId: string - unique identifier for the question instance
+    //   - question: string - question prompt text
+    //   - options: list of strings - multiple choice options
+    //   - correctIndex: number - index of correct option
+    //   - points: number - reward points for solving
+    //   - isActive: bool - whether the quiz question is currently active/unsolved
+    //   - attemptedBy: list of strings - member user IDs who made wrong attempts
+    //   - winnerId: string | null - user ID of member who solved it first, or null
+    //   - winnerName: string | null - display name of winner, or null
+    //   - winnerAvatarId: string | null (optional) - avatar identifier of winner
+    //   - winnerCustomAvatarUrl: string | null (optional) - custom avatar image URL or base64 data URI (50KB+)
+    //   - winnerTrack: string | null (optional) - track of winner ('Design' | 'Content')
+    //   - solvedAt: timestamp | null - timestamp when question was solved, or null
     //   - createdAt: timestamp | null (optional) - timestamp when question was launched
     //   - cancelledAt: timestamp | null (optional) - timestamp when question was cancelled
     //
-    // Existing Collections Preserved:
+    // Existing Collections:
     //   - users/{userId}
     //   - wallPosts/{postId} (and comments/{commentId})
     //   - pointEvents/{eventId}
@@ -33,70 +33,6 @@ service cloud.firestore {
     //   - sessionFeedbackResponses/{responseId}
     //   - settings/{docId}
     //
-    // ===============================================================
-
-    // ===============================================================
-    // Helper Functions & Domain Validators
-    // ===============================================================
-
-    function isValidOptions(options) {
-      return options is list &&
-             options.size() >= 2 && options.size() <= 10 &&
-             options[0] is string && options[0].size() > 0 && options[0].size() <= 500 &&
-             options[1] is string && options[1].size() > 0 && options[1].size() <= 500 &&
-             (options.size() < 3 || (options[2] is string && options[2].size() > 0 && options[2].size() <= 500)) &&
-             (options.size() < 4 || (options[3] is string && options[3].size() > 0 && options[3].size() <= 500));
-    }
-
-    function isValidGoldenQuestion(data) {
-      return data.keys().hasAll([
-               'questionId',
-               'question',
-               'options',
-               'correctIndex',
-               'points',
-               'isActive',
-               'attemptedBy',
-               'winnerId',
-               'winnerName',
-               'solvedAt'
-             ]) &&
-             data.keys().hasOnly([
-               'questionId',
-               'question',
-               'options',
-               'correctIndex',
-               'points',
-               'isActive',
-               'attemptedBy',
-               'winnerId',
-               'winnerName',
-               'winnerAvatarId',
-               'winnerCustomAvatarUrl',
-               'winnerTrack',
-               'solvedAt',
-               'createdAt',
-               'cancelledAt'
-             ]) &&
-             data.questionId is string && data.questionId.size() > 0 && data.questionId.size() <= 100 &&
-             data.question is string && data.question.size() > 0 && data.question.size() <= 1000 &&
-             isValidOptions(data.options) &&
-             data.correctIndex is number && data.correctIndex >= 0 && data.correctIndex < data.options.size() &&
-             data.points is number && data.points >= 0 && data.points <= 1000 &&
-             data.isActive is bool &&
-             data.attemptedBy is list && data.attemptedBy.size() <= 1000 &&
-             (data.winnerId == null || (data.winnerId is string && data.winnerId.size() <= 100)) &&
-             (data.winnerName == null || (data.winnerName is string && data.winnerName.size() <= 100)) &&
-             (!('winnerAvatarId' in data) || data.winnerAvatarId == null || (data.winnerAvatarId is string && data.winnerAvatarId.size() <= 100)) &&
-             (!('winnerCustomAvatarUrl' in data) || data.winnerCustomAvatarUrl == null || (data.winnerCustomAvatarUrl is string && data.winnerCustomAvatarUrl.size() <= 2000)) &&
-             (!('winnerTrack' in data) || data.winnerTrack == null || (data.winnerTrack is string && data.winnerTrack.size() <= 50)) &&
-             (data.solvedAt == null || data.solvedAt is timestamp) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp) &&
-             (!('cancelledAt' in data) || data.cancelledAt == null || data.cancelledAt is timestamp);
-    }
-
-    // ===============================================================
-    // Rules
     // ===============================================================
 
     match /users/{userId} {
@@ -134,10 +70,7 @@ service cloud.firestore {
     }
 
     match /goldenQuestions/{docId} {
-      allow read: if true;
-      allow create: if isValidGoldenQuestion(request.resource.data);
-      allow update: if isValidGoldenQuestion(request.resource.data);
-      allow delete: if true;
+      allow read, write: if true;
     }
   }
 }

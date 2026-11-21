@@ -1,7 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSession } from './context/SessionContext';
-import { SessionFeedbackProvider } from './context/SessionFeedbackContext';
-import { GoldenQuestionProvider } from './context/GoldenQuestionContext';
 import TopHeader from './components/layout/TopHeader';
 import BackgroundWave from './components/layout/BackgroundWave';
 import SessionFeedbackModal from './components/feedback/SessionFeedbackModal';
@@ -76,11 +74,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <SessionFeedbackProvider>
-        <GoldenQuestionProvider>
-          <AppRoutes />
-        </GoldenQuestionProvider>
-      </SessionFeedbackProvider>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

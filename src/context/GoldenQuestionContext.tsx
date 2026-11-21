@@ -330,10 +330,24 @@ export function GoldenQuestionProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const defaultContextValue: GoldenQuestionContextType = {
+  activeQuestion: null,
+  loading: true,
+  isModalOpen: false,
+  hasAttempted: false,
+  isWinner: false,
+  openModal: () => {},
+  closeModal: () => {},
+  dismissModal: () => {},
+  submitAnswer: async () => ({ success: false, message: 'Pop quiz system is initializing...' }),
+  dropQuestion: async () => {},
+  cancelQuestion: async () => {},
+};
+
 export function useGoldenQuestion() {
   const ctx = useContext(GoldenQuestionContext);
   if (!ctx) {
-    throw new Error('useGoldenQuestion must be used within GoldenQuestionProvider');
+    return defaultContextValue;
   }
   return ctx;
 }
