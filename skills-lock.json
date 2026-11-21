@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "skills": {
+    "antigravity-design-expert": {
+      "source": "sickn33/agentic-awesome-skills",
+      "commit": "4a52ab5ef117bdce2c6ba8d87dd64df0c840dfea",
+      "sourceType": "github",
+      "skillPath": "skills/antigravity-design-expert/SKILL.md",
+      "computedHash": "82af59c780876033bda97a9d15f44a5ade352dbbe41f917bbf4a3a408b68942a"
+    }
+  }
+}

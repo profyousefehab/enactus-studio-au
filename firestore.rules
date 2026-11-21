@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if request.resource.data.pinCode is string
+                    && request.resource.data.pinCode.size() == 4
+                    && request.resource.data.role == 'member';
+      allow update: if true;
+    }
+
+    match /wallPosts/{postId} {
+      allow read, create, update: if true;
+      allow delete: if true;
+
+      match /comments/{commentId} {
+        allow read, create: if true;
+      }
+    }
+
+    match /pointEvents/{eventId} {
+      allow read, create: if true;
+    }
+
+    match /attendance/{attId} {
+      allow read, create, update: if true;
+    }
+
+    match /sessionFeedbackResponses/{responseId} {
+      allow read, create: if true;
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
