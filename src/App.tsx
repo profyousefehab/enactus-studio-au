@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSession } from './context/SessionContext';
 import { SessionFeedbackProvider } from './context/SessionFeedbackContext';
+import { GoldenQuestionProvider } from './context/GoldenQuestionContext';
 import TopHeader from './components/layout/TopHeader';
 import BackgroundWave from './components/layout/BackgroundWave';
 import SessionFeedbackModal from './components/feedback/SessionFeedbackModal';
+import GoldenQuestionModal from './components/popquiz/GoldenQuestionModal';
 import LiveToast from './components/ui/LiveToast';
 import Onboarding from './pages/Onboarding';
 import StudioWall from './pages/StudioWall';
@@ -48,6 +50,7 @@ function AppRoutes() {
       <TopHeader />
       <LiveToast />
       <SessionFeedbackModal />
+      <GoldenQuestionModal />
       <main className="relative z-10">
         <Routes>
           <Route path="/" element={<StudioWall />} />
@@ -74,7 +77,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <SessionFeedbackProvider>
-        <AppRoutes />
+        <GoldenQuestionProvider>
+          <AppRoutes />
+        </GoldenQuestionProvider>
       </SessionFeedbackProvider>
     </BrowserRouter>
   );

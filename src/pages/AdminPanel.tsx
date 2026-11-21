@@ -10,6 +10,7 @@ import WallDropPublisher from '../components/admin/WallDropPublisher';
 import AttendanceLogger from '../components/admin/AttendanceLogger';
 import FeedbackPairer from '../components/admin/FeedbackPairer';
 import RandomPicker from '../components/admin/RandomPicker';
+import GoldenQuestionLauncher from '../components/admin/GoldenQuestionLauncher';
 
 interface SectionConfig {
   id: string;
@@ -18,7 +19,7 @@ interface SectionConfig {
 }
 
 interface Props {
-  initialTab?: 'all' | 'members' | 'attendance' | 'feedback-session' | 'wall-drop' | 'picker' | 'feedback';
+  initialTab?: 'all' | 'members' | 'attendance' | 'golden-question' | 'feedback-session' | 'wall-drop' | 'picker' | 'feedback';
 }
 
 export default function AdminPanel({ initialTab }: Props) {
@@ -26,7 +27,7 @@ export default function AdminPanel({ initialTab }: Props) {
   const location = useLocation();
 
   const startingTab = initialTab || (location.pathname === '/admin/members' ? 'members' : 'all');
-  const [activeTab, setActiveTab] = useState<'all' | 'members' | 'attendance' | 'feedback-session' | 'wall-drop' | 'picker' | 'feedback'>(startingTab);
+  const [activeTab, setActiveTab] = useState<'all' | 'members' | 'attendance' | 'golden-question' | 'feedback-session' | 'wall-drop' | 'picker' | 'feedback'>(startingTab);
   const [mobileTab, setMobileTab] = useState<string>(startingTab === 'all' ? 'members' : startingTab);
   const [stats, setStats] = useState({ total: 0, design: 0, content: 0 });
 
@@ -69,6 +70,7 @@ export default function AdminPanel({ initialTab }: Props) {
     { id: 'all', title: 'Dashboard (Grid)', icon: 'doodle:dashboard' },
     { id: 'members', title: 'Members Roster', icon: 'doodle:users' },
     { id: 'attendance', title: 'Attendance & Points', icon: 'doodle:clipboard' },
+    { id: 'golden-question', title: 'Golden Question ⚡', icon: 'doodle:zap' },
     { id: 'feedback-session', title: 'Session Feedback', icon: 'doodle:star' },
     { id: 'wall-drop', title: 'Wall Drops', icon: 'doodle:megaphone' },
     { id: 'picker', title: 'Random Picker', icon: 'doodle:dice' },
@@ -270,6 +272,11 @@ export default function AdminPanel({ initialTab }: Props) {
               <SessionFeedbackManager />
             </section>
 
+            {/* Section: Live Golden Question (Pop Quiz) */}
+            <section aria-label="Golden Question Pop Quiz">
+              <GoldenQuestionLauncher />
+            </section>
+
             {/* 2-Column Grid for Drops and Interactive Session Tools */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               {/* Left Column: Wall Drop Publisher */}
@@ -289,6 +296,7 @@ export default function AdminPanel({ initialTab }: Props) {
         {/* Individual Focused Tab Views */}
         {activeTab === 'members' && <MembersRoster />}
         {activeTab === 'attendance' && <AttendanceLogger />}
+        {activeTab === 'golden-question' && <GoldenQuestionLauncher />}
         {activeTab === 'feedback-session' && <SessionFeedbackManager />}
         {activeTab === 'wall-drop' && <WallDropPublisher />}
         {activeTab === 'picker' && <RandomPicker />}
@@ -311,6 +319,12 @@ export default function AdminPanel({ initialTab }: Props) {
             title: 'Attendance & Points',
             icon: 'doodle:clipboard',
             component: <AttendanceLogger />,
+          },
+          {
+            id: 'golden-question',
+            title: 'Golden Question (Pop Quiz) ⚡',
+            icon: 'doodle:zap',
+            component: <GoldenQuestionLauncher />,
           },
           {
             id: 'feedback-session',
