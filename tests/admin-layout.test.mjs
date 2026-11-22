@@ -197,7 +197,7 @@ test('R8: HR Role, Dedicated HR Panel & Coordinator HR Accounts Manager', () => 
   assert.match(sessionSrc, /role:\s*'member'\s*\|\s*'admin'\s*\|\s*'hr'/);
 
   // 2. Strict route guard in App.tsx: HR users only reach /hr
-  assert.match(appSrc, /user\.role === 'hr'/);
+  assert.match(appSrc, /user\?\.role[\s\S]*?'hr'/);
   assert.match(appSrc, /path="\/hr"\s*element=\{<HRPanel \/>\}/);
   assert.match(appSrc, /path="\*"\s*element=\{<Navigate to="\/hr" replace \/>\}/);
 
@@ -220,4 +220,36 @@ test('R8: HR Role, Dedicated HR Panel & Coordinator HR Accounts Manager', () => 
   assert.match(rulesSrc, /request\.resource\.data\.role == 'hr'/);
   assert.match(rulesSrc, /match \/users\/\{userId\} \{[\s\S]*?allow delete: if true;/);
   assert.match(rulesSrc, /match \/attendance\/\{attId\} \{[\s\S]*?delete: if true;/);
+});
+
+test('R9: HR Panel Fixes (Routing, Desktop Full Width, Mobile 390px, 44px Touch Targets, Points Action Bar)', () => {
+  const indexCss = fs.readFileSync(path.join(projectRoot, 'src/index.css'), 'utf-8');
+  const hrPanelSrc = fs.readFileSync(path.join(projectRoot, 'src/pages/HRPanel.tsx'), 'utf-8');
+  const onboardingSrc = fs.readFileSync(path.join(projectRoot, 'src/pages/Onboarding.tsx'), 'utf-8');
+  const attendanceSrc = fs.readFileSync(path.join(projectRoot, 'src/components/admin/SessionAttendance.tsx'), 'utf-8');
+  const pointsSrc = fs.readFileSync(path.join(projectRoot, 'src/components/admin/PointsManager.tsx'), 'utf-8');
+
+  // 1. Post-login routing to /hr
+  assert.match(onboardingSrc, /navigate\('\/hr',\s*\{\s*replace:\s*true\s*\}\)/);
+
+  // 2. Desktop layout #root expansion for HR
+  assert.match(indexCss, /body\.in-hr #root/);
+  assert.match(indexCss, /#root:has\(\.hr-container\)/);
+  assert.match(hrPanelSrc, /hr-container/);
+  assert.match(hrPanelSrc, /document\.body\.classList\.add\('in-hr'\)/);
+
+  // 3. Mobile at 390px: New Session button fully visible without clipping
+  assert.match(attendanceSrc, /w-full sm:w-auto min-h-\[44px\][\s\S]*?New Session/);
+
+  // 4. Touch targets at least 44px
+  assert.match(attendanceSrc, /min-h-\[44px\] min-w-\[48px\][\s\S]*?Undo/);
+  assert.match(attendanceSrc, /min-h-\[44px\] py-3 px-6[\s\S]*?Attend Member/);
+  assert.match(attendanceSrc, /min-h-\[44px\] px-3\.5 py-2[\s\S]*?Launch Feedback/);
+
+  // 5. Points page: Custom amount input has sensible min-width
+  assert.match(pointsSrc, /min-w-\[110px\]/);
+
+  // 6. Points page: floating action bar shown only when selected, container has bottom padding
+  assert.match(pointsSrc, /selectedIds\.size > 0 &&/);
+  assert.match(pointsSrc, /pb-44/);
 });

@@ -413,19 +413,21 @@ export default function SessionAttendance() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <SketchCallout
-              text="type member ID for instant check-in ⤵"
-              arrow="down-right"
-              color="#cb5521"
-              rotate="-rotate-2"
-              fontSize={18}
-            />
+          <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3 flex-wrap">
+            <div className="hidden sm:block">
+              <SketchCallout
+                text="type member ID for instant check-in ⤵"
+                arrow="down-right"
+                color="#cb5521"
+                rotate="-rotate-2"
+                fontSize={18}
+              />
+            </div>
             {/* Primary Action: New Session */}
             <button
               type="button"
               onClick={() => setShowNewSessionModal(true)}
-              className="px-4 py-2 text-xs font-bold rounded-xl border border-[var(--color-forest-ink)] bg-[var(--color-forest-ink)] text-[var(--color-cream-paper)] hover:opacity-90 cursor-pointer btn-spring whitespace-nowrap shadow-xs flex items-center gap-2"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl border border-[var(--color-forest-ink)] bg-[var(--color-forest-ink)] text-[var(--color-cream-paper)] hover:opacity-90 cursor-pointer btn-spring whitespace-nowrap shadow-xs flex items-center justify-center gap-2"
               style={{ fontFamily: 'var(--font-inter)' }}
             >
               <Icon icon="doodle:plus" width={16} height={16} />
@@ -586,10 +588,10 @@ export default function SessionAttendance() {
               setActiveSession(null);
               setFeedbackNotice(null);
             }}
-            className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-[var(--color-pencil-gray)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring flex items-center gap-1"
+            className="min-h-[44px] px-3.5 py-2 text-xs font-semibold rounded-lg border border-[var(--color-pencil-gray)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring flex items-center gap-1.5 shrink-0"
             style={{ fontFamily: 'var(--font-inter)' }}
           >
-            <Icon icon="doodle:arrow-left" width={14} height={14} />
+            <Icon icon="doodle:arrow-left" width={16} height={16} />
             <span>All Sessions</span>
           </button>
 
@@ -624,9 +626,9 @@ export default function SessionAttendance() {
               setFeedbackSessionLaunched(true);
               setTimeout(() => setFeedbackSessionLaunched(false), 4000);
             }}
-            className="px-3 py-1 text-xs font-bold rounded-lg border border-[var(--color-forest-ink)] bg-[var(--color-highlighter-yellow)] hover:opacity-90 text-[var(--color-forest-ink)] cursor-pointer btn-spring flex items-center gap-1.5 shadow-2xs"
+            className="min-h-[44px] px-3.5 py-2 text-xs font-bold rounded-xl border border-[var(--color-forest-ink)] bg-[var(--color-highlighter-yellow)] hover:opacity-90 text-[var(--color-forest-ink)] cursor-pointer btn-spring flex items-center gap-1.5 shadow-2xs"
           >
-            <StickerIcon name="star" size={14} />
+            <StickerIcon name="star" size={16} />
             <span>{feedbackSessionLaunched ? 'Feedback Launched!' : 'Launch Feedback →'}</span>
           </button>
         </div>
@@ -659,7 +661,7 @@ export default function SessionAttendance() {
             <button
               type="submit"
               disabled={idInput.length !== 4 || isProcessing}
-              className="w-full py-2.5 px-6 rounded-xl border border-[var(--color-forest-ink)] text-xs sm:text-sm font-bold cursor-pointer btn-spring transition-all disabled:opacity-40"
+              className="w-full min-h-[44px] py-3 px-6 rounded-xl border border-[var(--color-forest-ink)] text-xs sm:text-sm font-bold cursor-pointer btn-spring transition-all disabled:opacity-40 flex items-center justify-center"
               style={{
                 fontFamily: 'var(--font-inter)',
                 backgroundColor: 'var(--color-forest-ink)',
@@ -734,11 +736,11 @@ export default function SessionAttendance() {
                   </div>
                 </div>
 
-                {/* Undo Check-In Action */}
+                {/* Undo Check-In Action: min 44px touch target */}
                 <button
                   type="button"
                   onClick={() => handleUndoCheckIn(recordId, userId, member?.name)}
-                  className="px-2 py-0.5 text-[11px] font-mono rounded border border-gray-300 bg-white text-[var(--color-terracotta)] hover:bg-[#ffebe6] cursor-pointer btn-spring shrink-0"
+                  className="min-h-[44px] min-w-[48px] px-3 py-2 text-xs font-mono font-bold rounded-lg border border-gray-300 bg-white text-[var(--color-terracotta)] hover:bg-[#ffebe6] cursor-pointer btn-spring shrink-0 flex items-center justify-center"
                   title="Undo attendance and remove +10 PTS"
                 >
                   Undo
@@ -801,11 +803,11 @@ export default function SessionAttendance() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleManualMark(m, 'present')}
-                        className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded border cursor-pointer ${
+                        className={`min-h-[44px] px-2.5 py-1 text-xs font-mono font-bold rounded-lg border cursor-pointer flex items-center justify-center ${
                           isAttended
                             ? 'bg-[var(--color-forest-ink)] text-white border-[var(--color-forest-ink)]'
                             : 'bg-white text-[var(--color-forest-ink)] border-gray-300'
@@ -816,7 +818,7 @@ export default function SessionAttendance() {
                       <button
                         type="button"
                         onClick={() => handleManualMark(m, 'absent')}
-                        className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-gray-200 bg-white text-gray-500 hover:text-red-600 cursor-pointer"
+                        className="min-h-[44px] px-2.5 py-1 text-xs font-mono rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-red-600 cursor-pointer flex items-center justify-center"
                       >
                         Absent
                       </button>

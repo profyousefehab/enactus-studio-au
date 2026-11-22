@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { useSession } from '../context/SessionContext';
 import SessionAttendance from '../components/admin/SessionAttendance';
@@ -10,13 +10,22 @@ export default function HRPanel() {
   const { user, logout } = useSession();
   const [activeTab, setActiveTab] = useState<HRTab>('attendance');
 
-  if (!user || user.role !== 'hr') {
+  // Toggle body class so #root fills viewport on desktop
+  useEffect(() => {
+    document.body.classList.add('in-hr');
+    return () => {
+      document.body.classList.remove('in-hr');
+    };
+  }, []);
+
+  const isHR = user?.role?.toString().trim().toLowerCase() === 'hr';
+  if (!user || !isHR) {
     return null;
   }
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col md:flex-row"
+      className="hr-container min-h-screen w-full flex flex-col md:flex-row"
       style={{ backgroundColor: 'var(--color-cream-paper)' }}
     >
       {/* ───── Mobile Header (Hidden on md+) ───── */}

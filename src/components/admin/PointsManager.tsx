@@ -165,7 +165,7 @@ export default function PointsManager() {
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-28">
+    <div className="flex flex-col gap-6 pb-44 sm:pb-36">
       {/* ───── In-Page Header ───── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--color-pencil-gray)]/30">
         <div>
@@ -368,98 +368,94 @@ export default function PointsManager() {
         )}
       </div>
 
-      {/* ───── STICKY BOTTOM ACTION BAR ───── */}
-      <div className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-6 md:left-8 md:right-8 z-40 max-w-7xl mx-auto">
-        <div
-          className="p-3 sm:p-4 rounded-2xl border-2 border-[var(--color-forest-ink)] bg-[var(--color-cream-paper)] shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 animate-fadeIn"
-        >
-          {/* Selected Count & Helpers */}
-          <div className="flex items-center gap-3 justify-between md:justify-start">
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  selectedIds.size > 0 ? 'bg-emerald-600 animate-pulse' : 'bg-gray-300'
-                }`}
-              />
-              <span className="text-xs sm:text-sm font-mono font-bold text-[var(--color-forest-ink)]">
-                {selectedIds.size} member{selectedIds.size !== 1 ? 's' : ''} selected
-              </span>
-            </div>
+      {/* ───── STICKY BOTTOM ACTION BAR (Shown only when members are selected) ───── */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-4 left-3 right-3 sm:left-6 sm:right-6 md:left-8 md:right-8 z-40 max-w-7xl mx-auto animate-fadeIn">
+          <div
+            className="p-3 sm:p-4 rounded-2xl border-2 border-[var(--color-forest-ink)] bg-[var(--color-cream-paper)] shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+          >
+            {/* Selected Count & Helpers */}
+            <div className="flex items-center gap-3 justify-between md:justify-start">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-600 animate-pulse" />
+                <span className="text-xs sm:text-sm font-mono font-bold text-[var(--color-forest-ink)]">
+                  {selectedIds.size} member{selectedIds.size !== 1 ? 's' : ''} selected
+                </span>
+              </div>
 
-            {selectedIds.size > 0 && (
               <button
                 type="button"
                 onClick={deselectAll}
-                className="text-xs font-semibold underline text-[var(--color-terracotta)] hover:opacity-80 cursor-pointer"
+                className="min-h-[44px] px-3 py-1.5 text-xs font-semibold underline text-[var(--color-terracotta)] hover:opacity-80 cursor-pointer flex items-center"
               >
                 Deselect
               </button>
-            )}
-          </div>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 flex-wrap justify-end">
-            {POINT_ACTIONS.map((action) => (
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              {POINT_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  disabled={isApplying}
+                  onClick={() =>
+                    handleAwardPoints(
+                      action.amount,
+                      action.label.replace(/^[+\u2212]\d+\s*/, '')
+                    )
+                  }
+                  className={`min-h-[44px] px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-[var(--color-forest-ink)] cursor-pointer btn-spring transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center ${
+                    action.isNegative ? 'text-[var(--color-terracotta)]' : 'text-[var(--color-forest-ink)]'
+                  }`}
+                  style={{
+                    backgroundColor: action.bg,
+                  }}
+                >
+                  {action.label}
+                </button>
+              ))}
+
+              {/* Custom Action Toggle */}
               <button
-                key={action.label}
                 type="button"
-                disabled={selectedIds.size === 0 || isApplying}
-                onClick={() =>
-                  handleAwardPoints(
-                    action.amount,
-                    action.label.replace(/^[+\u2212]\d+\s*/, '')
-                  )
-                }
-                className={`px-3 py-1.5 text-xs font-mono font-bold rounded-xl border border-[var(--color-forest-ink)] cursor-pointer btn-spring transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
-                  action.isNegative ? 'text-[var(--color-terracotta)]' : 'text-[var(--color-forest-ink)]'
-                }`}
-                style={{
-                  backgroundColor: action.bg,
-                }}
+                disabled={isApplying}
+                onClick={() => setShowCustomInput(!showCustomInput)}
+                className="min-h-[44px] px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-[var(--color-forest-ink)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {action.label}
+                Custom...
               </button>
-            ))}
-
-            {/* Custom Action Toggle */}
-            <button
-              type="button"
-              disabled={selectedIds.size === 0 || isApplying}
-              onClick={() => setShowCustomInput(!showCustomInput)}
-              className="px-3 py-1.5 text-xs font-mono font-bold rounded-xl border border-[var(--color-forest-ink)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              Custom...
-            </button>
+            </div>
           </div>
-        </div>
 
-        {/* Custom Amount Sub-Bar */}
-        {showCustomInput && selectedIds.size > 0 && (
-          <form
-            onSubmit={handleApplyCustom}
-            className="mt-2 p-3 rounded-xl border-2 border-[var(--color-forest-ink)] bg-white shadow-lg flex items-center justify-end gap-2 max-w-sm ml-auto animate-fadeIn"
-          >
-            <span className="text-xs font-bold text-[var(--color-forest-ink)] font-inter">
-              Amount (+ or −):
-            </span>
-            <input
-              type="number"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder="e.g. 25 or -10"
-              autoFocus
-              className="w-24 text-xs p-1.5 rounded-lg border border-[var(--color-pencil-gray)] font-mono text-center focus:border-[var(--color-forest-ink)] focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={!customAmount.trim() || isApplying}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-[var(--color-forest-ink)] bg-[var(--color-forest-ink)] text-[var(--color-cream-paper)] hover:opacity-90 cursor-pointer disabled:opacity-40"
+          {/* Custom Amount Sub-Bar */}
+          {showCustomInput && (
+            <form
+              onSubmit={handleApplyCustom}
+              className="mt-2 p-3 rounded-xl border-2 border-[var(--color-forest-ink)] bg-white shadow-lg flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2.5 w-full sm:max-w-md sm:ml-auto animate-fadeIn"
             >
-              Apply
-            </button>
-          </form>
-        )}
-      </div>
+              <span className="text-xs font-bold text-[var(--color-forest-ink)] font-inter shrink-0">
+                Amount (+ or −):
+              </span>
+              <input
+                type="number"
+                value={customAmount}
+                onChange={(e) => setCustomAmount(e.target.value)}
+                placeholder="e.g. 25 or -10"
+                autoFocus
+                className="flex-1 sm:flex-none min-w-[110px] w-28 min-h-[44px] text-xs p-2 rounded-lg border border-[var(--color-pencil-gray)] font-mono text-center focus:border-[var(--color-forest-ink)] focus:outline-none shrink-0"
+              />
+              <button
+                type="submit"
+                disabled={!customAmount.trim() || isApplying}
+                className="min-h-[44px] px-4 py-2 text-xs font-bold rounded-lg border border-[var(--color-forest-ink)] bg-[var(--color-forest-ink)] text-[var(--color-cream-paper)] hover:opacity-90 cursor-pointer disabled:opacity-40 shrink-0 flex items-center justify-center"
+              >
+                Apply
+              </button>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }

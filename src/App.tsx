@@ -43,7 +43,8 @@ function AppRoutes() {
   }
 
   // HR User → Dedicated HR Panel only! No member app, no coordinator panel, no nav to them!
-  if (user.role === 'hr') {
+  const isHR = user?.role?.toString().trim().toLowerCase() === 'hr';
+  if (isHR) {
     return (
       <div className="relative min-h-screen">
         <BackgroundWave />
