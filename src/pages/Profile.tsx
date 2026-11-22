@@ -13,6 +13,7 @@ import AvatarPickerModal from '../components/profile/AvatarPickerModal';
 import StreakCard from '../components/profile/StreakCard';
 import TierCard from '../components/profile/TierCard';
 import RankingsCard from '../components/profile/RankingsCard';
+import { isExcludedMember } from '../utils/accounts';
 import FeedbackPartnerCard from '../components/profile/FeedbackPartnerCard';
 import TiersRoadmapModal from '../components/profile/TiersRoadmapModal';
 import StreakGuideModal from '../components/profile/StreakGuideModal';
@@ -33,7 +34,7 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const members = snap.docs
         .map((d) => d.data())
-        .filter((u: any) => u.role !== 'admin' && u.name?.trim().toLowerCase() !== 'yousef ehab');
+        .filter((u: any) => !isExcludedMember(u));
 
       setMemberStats({
         total: members.length,

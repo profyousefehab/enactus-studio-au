@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { isExcludedMember } from '../../utils/accounts';
 
 interface RankData {
   overallRank: number;
@@ -25,10 +26,10 @@ export default function RankingsCard() {
 
     const q = query(collection(db, 'users'), orderBy('points', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
-      // Exclude admin / coordinator from member ranking calculations
+      // Exclude admin coordinator, HR, and test accounts from member ranking calculations
       const memberUsers = snap.docs
         .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((u: any) => u.role !== 'admin' && u.name?.trim().toLowerCase() !== 'yousef ehab') as Array<{
+        .filter((u: any) => !isExcludedMember(u)) as Array<{
           id: string;
           track: string;
           points: number;

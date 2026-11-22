@@ -5,6 +5,7 @@ import { db } from '../../lib/firebase';
 import { useSessionFeedback } from '../../context/SessionFeedbackContext';
 import { useGoldenQuestion } from '../../context/GoldenQuestionContext';
 import SketchCallout from '../ui/SketchCallout';
+import { isExcludedMember } from '../../utils/accounts';
 
 interface DashboardStats {
   total: number;
@@ -38,7 +39,7 @@ export default function DashboardHome({ onNavigateTab }: DashboardHomeProps) {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const allMembers = snap.docs
         .map((d) => ({ id: d.id, ...d.data() } as any))
-        .filter((u) => u.role !== 'admin' && u.role !== 'hr' && u.name?.trim().toLowerCase() !== 'yousef ehab');
+        .filter((u) => !isExcludedMember(u));
 
       const total = allMembers.length;
       const design = allMembers.filter((m) => m.track === 'Design').length;

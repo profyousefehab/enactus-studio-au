@@ -8,6 +8,7 @@ import FilterPills from '../components/ui/FilterPills';
 import PodiumCards from '../components/leaderboard/PodiumCards';
 import LeaderboardRow from '../components/leaderboard/LeaderboardRow';
 import SkeletonCard from '../components/ui/SkeletonCard';
+import { isExcludedMember } from '../utils/accounts';
 
 interface LeaderboardUser {
   id: string;
@@ -59,8 +60,8 @@ export default function Leaderboard() {
           points: doc.data().points ?? 0,
           role: doc.data().role,
         }))
-        // Exclude admin coordinator from committee rankings
-        .filter((u) => u.role !== 'admin' && u.name?.trim().toLowerCase() !== 'yousef ehab') as LeaderboardUser[];
+        // Exclude admin coordinator, HR, and test accounts from committee rankings
+        .filter((u) => !isExcludedMember(u)) as LeaderboardUser[];
 
       setAllUsers(data);
       setLoading(false);

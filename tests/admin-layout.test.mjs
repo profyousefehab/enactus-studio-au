@@ -253,3 +253,40 @@ test('R9: HR Panel Fixes (Routing, Desktop Full Width, Mobile 390px, 44px Touch 
   assert.match(pointsSrc, /selectedIds\.size > 0 &&/);
   assert.match(pointsSrc, /pb-44/);
 });
+
+test('R10: Hide Youse Test Account & test accounts from all public and coordinator member lists', async () => {
+  const { isExcludedMember } = await import('../src/utils/accounts.ts');
+
+  // Exact test account reported by user
+  assert.equal(isExcludedMember({ role: 'member', name: 'youse test' }), true);
+  assert.equal(isExcludedMember({ role: 'member', name: 'Youse Test' }), true);
+  assert.equal(isExcludedMember({ role: 'member', name: '  youse test  ' }), true);
+  assert.equal(isExcludedMember({ role: 'member', name: 'test account' }), true);
+
+  // Coordinator admin & HR accounts excluded
+  assert.equal(isExcludedMember({ role: 'admin', name: 'Yousef Ehab' }), true);
+  assert.equal(isExcludedMember({ role: 'hr', name: 'HR Operations Lead' }), true);
+
+  // Real committee members must NOT be excluded
+  assert.equal(isExcludedMember({ role: 'member', name: 'Youssef Reda Mansey' }), false);
+  assert.equal(isExcludedMember({ role: 'member', name: 'Mariam Khaled' }), false);
+
+  // Verify all member-listing views use isExcludedMember
+  const files = [
+    'src/pages/Leaderboard.tsx',
+    'src/pages/Profile.tsx',
+    'src/components/profile/RankingsCard.tsx',
+    'src/pages/AdminPanel.tsx',
+    'src/components/admin/DashboardHome.tsx',
+    'src/components/admin/MembersRoster.tsx',
+    'src/components/admin/SessionAttendance.tsx',
+    'src/components/admin/PointsManager.tsx',
+    'src/components/admin/FeedbackPairer.tsx',
+    'src/components/admin/RandomPicker.tsx',
+  ];
+
+  for (const file of files) {
+    const src = fs.readFileSync(path.join(projectRoot, file), 'utf-8');
+    assert.match(src, /isExcludedMember/, `${file} must import and use isExcludedMember`);
+  }
+});

@@ -13,6 +13,7 @@ import FeedbackPairer from '../components/admin/FeedbackPairer';
 import RandomPicker from '../components/admin/RandomPicker';
 import GoldenQuestionLauncher from '../components/admin/GoldenQuestionLauncher';
 import HRAccountsManager from '../components/admin/HRAccountsManager';
+import { isExcludedMember } from '../utils/accounts';
 
 export type AdminTab =
   | 'dashboard'
@@ -120,7 +121,7 @@ export default function AdminPanel({ initialTab }: Props) {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const members = snap.docs
         .map((d) => d.data())
-        .filter((u: any) => u.role !== 'admin' && u.role !== 'hr' && u.name?.trim().toLowerCase() !== 'yousef ehab');
+        .filter((u: any) => !isExcludedMember(u));
 
       const total = members.length;
       const design = members.filter((m: any) => m.track === 'Design').length;

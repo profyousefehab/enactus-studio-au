@@ -12,6 +12,7 @@ import {
 import { Icon } from '@iconify/react';
 import { db } from '../../lib/firebase';
 import { useSessionFeedback } from '../../context/SessionFeedbackContext';
+import { isExcludedMember } from '../../utils/accounts';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
 import StickerIcon from '../ui/StickerIcon';
@@ -78,7 +79,7 @@ export default function SessionAttendance() {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const data = snap.docs
         .map((d) => ({ id: d.id, ...d.data() } as Member))
-        .filter((m) => m.role !== 'admin' && m.role !== 'hr' && m.name?.trim().toLowerCase() !== 'yousef ehab');
+        .filter((m) => !isExcludedMember(m));
       data.sort((a, b) => a.name.localeCompare(b.name));
       setMembers(data);
       setLoading(false);

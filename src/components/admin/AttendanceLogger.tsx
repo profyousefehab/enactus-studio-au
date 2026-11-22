@@ -13,6 +13,7 @@ import { db } from '../../lib/firebase';
 import { useSessionFeedback } from '../../context/SessionFeedbackContext';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
+import { isExcludedMember } from '../../utils/accounts';
 import StickerIcon from '../ui/StickerIcon';
 import SketchCallout from '../ui/SketchCallout';
 
@@ -70,7 +71,7 @@ export default function AttendanceLogger() {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const data = snap.docs
         .map((d) => ({ id: d.id, ...d.data() } as Member))
-        .filter((m) => m.role !== 'admin' && m.name?.trim().toLowerCase() !== 'yousef ehab');
+        .filter((m) => !isExcludedMember(m));
       data.sort((a, b) => a.name.localeCompare(b.name));
       setMembers(data);
       setLoading(false);

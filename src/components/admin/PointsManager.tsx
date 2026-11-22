@@ -13,6 +13,7 @@ import { db } from '../../lib/firebase';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
 import SketchCallout from '../ui/SketchCallout';
+import { isExcludedMember } from '../../utils/accounts';
 
 interface Member {
   id: string;
@@ -58,7 +59,7 @@ export default function PointsManager() {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const data = snap.docs
         .map((d) => ({ id: d.id, ...d.data() } as Member))
-        .filter((m) => m.role !== 'admin' && m.role !== 'hr' && m.name?.trim().toLowerCase() !== 'yousef ehab');
+        .filter((m) => !isExcludedMember(m));
       data.sort((a, b) => (b.points || 0) - (a.points || 0));
       setMembers(data);
       setLoading(false);

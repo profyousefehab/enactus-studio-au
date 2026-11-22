@@ -13,6 +13,7 @@ import { db } from '../../lib/firebase';
 import FilterPills from '../ui/FilterPills';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
+import { isExcludedMember } from '../../utils/accounts';
 import SketchCallout from '../ui/SketchCallout';
 
 interface Member {
@@ -154,8 +155,8 @@ export default function RandomPicker() {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const data = snap.docs
         .map((d) => ({ id: d.id, ...d.data() } as Member))
-        // Exclude admin coordinator
-        .filter((m) => m.role !== 'admin' && m.name?.trim().toLowerCase() !== 'yousef ehab');
+        // Exclude admin coordinator, HR, and test accounts
+        .filter((m) => !isExcludedMember(m));
       data.sort((a, b) => a.name.localeCompare(b.name));
       setMembers(data);
     });

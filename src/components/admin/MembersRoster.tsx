@@ -18,6 +18,7 @@ import TrackBadge from '../ui/TrackBadge';
 import TierBadge from '../ui/TierBadge';
 import SketchCallout from '../ui/SketchCallout';
 import { getTier, getNextTier, getTierProgress } from '../../utils/tiers';
+import { isExcludedMember } from '../../utils/accounts';
 
 export interface AdminMember {
   id: string;
@@ -99,10 +100,8 @@ export default function MembersRoster({
           bestStreak: d.data().bestStreak ?? 0,
         })) as AdminMember[];
 
-      // Filter out admin & HR accounts from standard committee member rankings
-      const filteredMembers = data.filter(
-        (m) => m.role !== 'admin' && m.role !== 'hr' && m.name?.trim().toLowerCase() !== 'yousef ehab'
-      );
+      // Filter out admin, HR, and test accounts from standard committee member rankings
+      const filteredMembers = data.filter((m) => !isExcludedMember(m));
 
       setMembers(filteredMembers);
       setLoading(false);
