@@ -102,12 +102,14 @@ export default function Leaderboard() {
 
       {/* Podium */}
       {!loading && podiumMembers.length > 0 && (
-        <PodiumCards members={podiumMembers} />
+        <div key={`podium-${filter}`}>
+          <PodiumCards members={podiumMembers} currentUserId={user?.id} />
+        </div>
       )}
 
       {/* Ranked list */}
       {!loading && restMembers.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div key={`list-${filter}`} className="flex flex-col gap-2">
           {restMembers.map((member, idx) => (
             <LeaderboardRow
               key={member.id}

@@ -154,6 +154,149 @@ body {
 }
 
 /* ═══════════════════════════════════════════
+   Podium Rise & Trophy Keyframes
+   ═══════════════════════════════════════════ */
+
+@keyframes podium-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.94);
+  }
+  65% {
+    transform: translateY(-4px) scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-podium {
+  animation: podium-rise 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  will-change: transform, opacity;
+}
+
+/* ═══════════════════════════════════════════
+   Slot-Machine Wheel & Suspense Keyframes
+   ═══════════════════════════════════════════ */
+
+@keyframes reel-item-slide {
+  0% {
+    opacity: 0.4;
+    transform: translateY(24px) scale(0.93);
+    filter: blur(1px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.02);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-reel-item {
+  animation: reel-item-slide 0.14s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes pointer-flick {
+  0% {
+    transform: scale(1) translateX(0);
+  }
+  35% {
+    transform: scale(1.18) translateX(-3px);
+  }
+  100% {
+    transform: scale(1) translateX(0);
+  }
+}
+
+.animate-flick-left {
+  animation: pointer-flick 0.12s ease-out;
+}
+
+@keyframes pointer-flick-right {
+  0% {
+    transform: scale(1) translateX(0);
+  }
+  35% {
+    transform: scale(1.18) translateX(3px);
+  }
+  100% {
+    transform: scale(1) translateX(0);
+  }
+}
+
+.animate-flick-right {
+  animation: pointer-flick-right 0.12s ease-out;
+}
+
+@keyframes winner-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.18) rotate(-1.5deg);
+  }
+  45% {
+    transform: scale(0.96) rotate(0.8deg);
+  }
+  75% {
+    transform: scale(1.02) rotate(-0.3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-winner-stamp {
+  animation: winner-stamp 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  will-change: transform, opacity;
+}
+
+@keyframes confetti-float {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120px) rotate(420deg);
+  }
+}
+
+.animate-confetti {
+  animation: confetti-float 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* ═══════════════════════════════════════════
+   Tier Progression Shimmer & Stepper Keyframes
+   ═══════════════════════════════════════════ */
+
+@keyframes progress-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-forest-ink) 0%,
+    rgba(40, 80, 10, 0.7) 50%,
+    var(--color-forest-ink) 100%
+  );
+  background-size: 200% 100%;
+  animation: progress-shimmer 2.5s infinite linear;
+}
+
+/* ═══════════════════════════════════════════
    Handwritten Pen Annotations (Nanum Pen Script)
    ═══════════════════════════════════════════ */
 
