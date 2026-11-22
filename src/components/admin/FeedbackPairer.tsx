@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import { db } from '../../lib/firebase';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
+import SketchCallout from '../ui/SketchCallout';
 
 interface Member {
   id: string;
@@ -155,7 +156,7 @@ export default function FeedbackPairer() {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm animate-pulse" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}>
+        <p className="text-xs font-mono animate-pulse text-[var(--color-pencil-gray)]">
           Loading committee members...
         </p>
       </div>
@@ -163,209 +164,252 @@ export default function FeedbackPairer() {
   }
 
   return (
-    <div
-      className="p-4 sm:p-5"
-      style={{
-        backgroundColor: 'var(--color-cream-paper)',
-        border: '1px solid var(--color-forest-ink)',
-        borderRadius: 'var(--radius-cards)',
-      }}
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[var(--color-pencil-gray)]">
+    <div className="flex flex-col gap-6">
+      {/* ───── In-Page Header ───── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--color-pencil-gray)]/30">
         <div>
-          <h4
-            className="text-base font-bold flex items-center gap-2"
-            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
-          >
-            <Icon icon="doodle:users" width={18} height={18} className="shrink-0" />
-            Feedback Partner Pairing
-          </h4>
-          <p className="text-xs mt-0.5" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <h2
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--color-forest-ink)]"
+              style={{ fontFamily: 'var(--font-bricolage)' }}
+            >
+              Feedback Partner Pairing
+            </h2>
+            <span
+              className="text-[11px] font-mono font-bold px-2 py-0.5 rounded border border-[var(--color-forest-ink)]"
+              style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
+            >
+              PEER REVIEW
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-[var(--color-pencil-gray)]" style={{ fontFamily: 'var(--font-inter)' }}>
             Pair Design and Content members together for bi-weekly peer reviews ("2 Stars & 1 Wish").
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleAutoPair}
-            disabled={pairing || members.length < 2}
-            className="px-3 py-1.5 text-xs font-semibold cursor-pointer btn-spring"
-            style={{
-              fontFamily: 'var(--font-inter)',
-              backgroundColor: 'var(--color-sticky-note-teal)',
-              color: 'var(--color-forest-ink)',
-              border: '1.5px solid var(--color-forest-ink)',
-              borderRadius: 'var(--radius-buttons)',
-              opacity: pairing || members.length < 2 ? 0.4 : 1,
-            }}
-          >
-            {pairing ? 'Pairing...' : 'Auto-pair all (cross-track)'}
-          </button>
-          {pairs.length > 0 && (
-            <button
-              onClick={handleClearAllPairs}
-              disabled={pairing}
-              className="px-3 py-1.5 text-xs font-semibold cursor-pointer btn-spring"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                backgroundColor: 'transparent',
-                color: 'var(--color-terracotta)',
-                border: '1px solid var(--color-terracotta)',
-                borderRadius: 'var(--radius-buttons)',
-              }}
-            >
-              Clear pairs
-            </button>
-          )}
-        </div>
+        <SketchCallout
+          text="cross-track pairings ⤵"
+          arrow="down-right"
+          color="#cb5521"
+          rotate="-rotate-2"
+          fontSize={18}
+        />
       </div>
 
-      {success && (
-        <div
-          className="text-xs font-medium px-3 py-2 mb-4"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            backgroundColor: 'var(--color-sticky-note-mint)',
-            border: '1px solid var(--color-forest-ink)',
-            borderRadius: 'var(--radius-buttons)',
-            color: 'var(--color-forest-ink)',
-          }}
-        >
-          Pairings updated successfully.
-        </div>
-      )}
-
-      {/* Current pairs responsive grid */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}>
-            Active Pairs ({pairs.length})
-          </span>
-          {unpaired.length > 0 && (
-            <span className="text-xs" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-terracotta)' }}>
-              {unpaired.length} unpaired member{unpaired.length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-
-        {pairs.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {pairs.map(([a, b]) => (
-              <div
-                key={`${a.id}-${b.id}`}
-                className="flex items-center justify-between gap-2 p-2.5 card-spring"
-                style={{
-                  backgroundColor: 'var(--color-sticky-note-teal)',
-                  border: '1.5px solid var(--color-forest-ink)',
-                  borderRadius: 'var(--radius-cards)',
-                }}
-              >
-                {/* Member A */}
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <StudioAvatar avatarId={a.avatarId} customAvatarUrl={a.customAvatarUrl} size={28} />
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-                      {a.name}
-                    </p>
-                    <TrackBadge track={a.track} size="sm" />
-                  </div>
-                </div>
-
-                <div className="px-1 text-[11px] font-bold" style={{ color: 'var(--color-forest-ink)', opacity: 0.5 }}>
-                  ⇄
-                </div>
-
-                {/* Member B */}
-                <div className="flex items-center gap-2 min-w-0 flex-1 justify-end text-right">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-                      {b.name}
-                    </p>
-                    <TrackBadge track={b.track} size="sm" />
-                  </div>
-                  <StudioAvatar avatarId={b.avatarId} customAvatarUrl={b.customAvatarUrl} size={28} />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
+      {/* ───── Shared 2-Column Section Template (Desktop lg+) ───── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (~2/3): Member Lists (Active Pairs + Unpaired) */}
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+          {/* Active Pairs List */}
           <div
-            className="p-4 text-center border border-dashed border-[var(--color-pencil-gray)] rounded-xl"
-            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}
+            className="p-4 sm:p-5 rounded-2xl border border-[var(--color-forest-ink)] shadow-xs"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
           >
-            <p className="text-xs">No active pairings. Click "Auto-pair all" or select two members below.</p>
-          </div>
-        )}
-      </div>
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <div className="flex items-center gap-2">
+                <Icon icon="doodle:users" width={18} height={18} className="text-[var(--color-forest-ink)]" />
+                <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                  Active Pairs ({pairs.length})
+                </span>
+              </div>
+              <span className="text-xs font-mono text-[var(--color-pencil-gray)]">
+                Design ⇄ Content
+              </span>
+            </div>
 
-      {/* Manual pairing bar */}
-      <div className="p-3.5 rounded-xl border border-[var(--color-pencil-gray)] bg-[var(--color-cream-paper)]">
-        <p className="text-xs font-semibold mb-2" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-          Manual Pair or Re-pair
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
-          <div className="sm:col-span-5">
-            <label className="text-[11px] font-medium mb-1 block" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-              First Member
-            </label>
-            <select
-              value={memberA}
-              onChange={(e) => setMemberA(e.target.value)}
-              className="w-full text-xs px-2.5 py-2 focus:outline-none cursor-pointer"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                color: 'var(--color-forest-ink)',
-                backgroundColor: 'var(--color-cream-paper)',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-              }}
-            >
-              <option value="">Select member...</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name} ({m.track})</option>
-              ))}
-            </select>
+            {pairs.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
+                {pairs.map(([a, b]) => (
+                  <div
+                    key={`${a.id}-${b.id}`}
+                    className="flex items-center justify-between gap-2 p-2.5 card-spring"
+                    style={{
+                      backgroundColor: 'var(--color-sticky-note-teal)',
+                      border: '1.5px solid var(--color-forest-ink)',
+                      borderRadius: 'var(--radius-cards)',
+                    }}
+                  >
+                    {/* Member A */}
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <StudioAvatar avatarId={a.avatarId} customAvatarUrl={a.customAvatarUrl} size={28} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold truncate text-[var(--color-forest-ink)]" style={{ fontFamily: 'var(--font-inter)' }}>
+                          {a.name}
+                        </p>
+                        <TrackBadge track={a.track} size="sm" />
+                      </div>
+                    </div>
+
+                    <div className="px-1 text-xs font-bold text-[var(--color-forest-ink)] opacity-60">
+                      ⇄
+                    </div>
+
+                    {/* Member B */}
+                    <div className="flex items-center gap-2 min-w-0 flex-1 justify-end text-right">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold truncate text-[var(--color-forest-ink)]" style={{ fontFamily: 'var(--font-inter)' }}>
+                          {b.name}
+                        </p>
+                        <TrackBadge track={b.track} size="sm" />
+                      </div>
+                      <StudioAvatar avatarId={b.avatarId} customAvatarUrl={b.customAvatarUrl} size={28} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 text-center border border-dashed border-[var(--color-pencil-gray)] rounded-xl bg-white/50">
+                <p className="text-xs font-inter text-[var(--color-pencil-gray)]">
+                  No active pairings. Click "Auto-pair all" on the right or manually select two members.
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="sm:col-span-5">
-            <label className="text-[11px] font-medium mb-1 block" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-              Second Member
-            </label>
-            <select
-              value={memberB}
-              onChange={(e) => setMemberB(e.target.value)}
-              className="w-full text-xs px-2.5 py-2 focus:outline-none cursor-pointer"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                color: 'var(--color-forest-ink)',
-                backgroundColor: 'var(--color-cream-paper)',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-              }}
-            >
-              <option value="">Select member...</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name} ({m.track})</option>
-              ))}
-            </select>
-          </div>
+          {/* Unpaired Members List */}
+          <div
+            className="p-4 sm:p-5 rounded-2xl border border-[var(--color-forest-ink)] shadow-xs"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
+          >
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                Unpaired Members ({unpaired.length})
+              </span>
+              {unpaired.length === 0 ? (
+                <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
+                  ✓ All Paired
+                </span>
+              ) : (
+                <span className="text-xs font-mono font-bold text-[var(--color-terracotta)]">
+                  Requires partner
+                </span>
+              )}
+            </div>
 
-          <div className="sm:col-span-2">
+            {unpaired.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+                {unpaired.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center gap-2 p-2 rounded-lg border border-[var(--color-pencil-gray)] bg-white"
+                  >
+                    <StudioAvatar avatarId={m.avatarId} customAvatarUrl={m.customAvatarUrl} size={24} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium truncate text-[var(--color-forest-ink)]" style={{ fontFamily: 'var(--font-inter)' }}>
+                        {m.name}
+                      </p>
+                      <TrackBadge track={m.track} size="sm" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs font-inter text-[var(--color-pencil-gray)]">
+                Every active committee member currently has an assigned feedback partner.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column (~1/3): Sticky Pairing Controls Rail */}
+        <div className="lg:col-span-5 xl:col-span-4 sticky top-20 z-10 flex flex-col gap-4">
+          <div
+            className="p-4 sm:p-5 rounded-2xl border-2 border-[var(--color-forest-ink)] shadow-sm flex flex-col gap-4"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
+          >
+            <div className="pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                Pairing Controls
+              </span>
+              <p className="text-[11px] text-[var(--color-pencil-gray)] font-inter mt-0.5">
+                Automatically match Design & Content members.
+              </p>
+            </div>
+
+            {success && (
+              <div className="text-xs font-mono font-bold px-3 py-2 rounded-lg border border-[var(--color-forest-ink)] bg-[var(--color-sticky-note-mint)] text-[var(--color-forest-ink)] animate-fadeIn">
+                ✓ Pairings updated successfully.
+              </div>
+            )}
+
+            {/* Exactly ONE dark-green primary CTA */}
             <button
-              onClick={handleManualPair}
-              disabled={pairing || !memberA || !memberB}
-              className="w-full text-xs font-semibold py-2 cursor-pointer btn-spring"
+              type="button"
+              onClick={handleAutoPair}
+              disabled={pairing || members.length < 2}
+              className="w-full py-2.5 px-4 text-xs font-bold rounded-xl border border-[var(--color-forest-ink)] cursor-pointer btn-spring transition-opacity disabled:opacity-40 text-center"
               style={{
                 fontFamily: 'var(--font-inter)',
                 backgroundColor: 'var(--color-forest-ink)',
                 color: 'var(--color-cream-paper)',
-                border: 'none',
-                borderRadius: 'var(--radius-buttons)',
-                opacity: pairing || !memberA || !memberB ? 0.4 : 1,
               }}
             >
-              Pair
+              {pairing ? 'Pairing...' : 'Auto-pair all (cross-track) →'}
             </button>
+
+            {/* Quieter Secondary/Destructive Action */}
+            {pairs.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAllPairs}
+                disabled={pairing}
+                className="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border border-gray-300 bg-white text-[var(--color-terracotta)] hover:bg-[#ffebe6] cursor-pointer btn-spring transition-colors"
+                style={{ fontFamily: 'var(--font-inter)' }}
+              >
+                Clear all pairings
+              </button>
+            )}
+
+            {/* Manual Pair Bar */}
+            <div className="pt-3 border-t border-[var(--color-pencil-gray)]/30 flex flex-col gap-2.5">
+              <span className="text-xs font-bold font-inter text-[var(--color-forest-ink)]">
+                Manual Pair or Re-pair
+              </span>
+
+              <div>
+                <label className="text-[11px] font-medium mb-1 block text-[var(--color-forest-ink)] font-inter">
+                  First Member
+                </label>
+                <select
+                  value={memberA}
+                  onChange={(e) => setMemberA(e.target.value)}
+                  className="w-full text-xs px-2.5 py-2 rounded-lg border border-[var(--color-pencil-gray)] focus:border-[var(--color-forest-ink)] focus:outline-none bg-white text-[var(--color-forest-ink)]"
+                  style={{ fontFamily: 'var(--font-inter)' }}
+                >
+                  <option value="">Select member...</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>{m.name} ({m.track})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium mb-1 block text-[var(--color-forest-ink)] font-inter">
+                  Second Member
+                </label>
+                <select
+                  value={memberB}
+                  onChange={(e) => setMemberB(e.target.value)}
+                  className="w-full text-xs px-2.5 py-2 rounded-lg border border-[var(--color-pencil-gray)] focus:border-[var(--color-forest-ink)] focus:outline-none bg-white text-[var(--color-forest-ink)]"
+                  style={{ fontFamily: 'var(--font-inter)' }}
+                >
+                  <option value="">Select member...</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>{m.name} ({m.track})</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleManualPair}
+                disabled={pairing || !memberA || !memberB}
+                className="w-full py-2 text-xs font-semibold rounded-lg border border-[var(--color-forest-ink)] bg-[var(--color-cream-paper)] hover:bg-gray-100 text-[var(--color-forest-ink)] cursor-pointer btn-spring disabled:opacity-40"
+                style={{ fontFamily: 'var(--font-inter)' }}
+              >
+                Pair Selected Members
+              </button>
+            </div>
           </div>
         </div>
       </div>

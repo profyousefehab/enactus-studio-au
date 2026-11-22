@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
 import Guidelines from './pages/Guidelines';
 import AdminPanel from './pages/AdminPanel';
+import HRPanel from './pages/HRPanel';
 
 function AppRoutes() {
   const { user, loading } = useSession();
@@ -38,6 +39,19 @@ function AppRoutes() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="*" element={<Navigate to="/onboarding" replace />} />
       </Routes>
+    );
+  }
+
+  // HR User → Dedicated HR Panel only! No member app, no coordinator panel, no nav to them!
+  if (user.role === 'hr') {
+    return (
+      <div className="relative min-h-screen">
+        <BackgroundWave />
+        <Routes>
+          <Route path="/hr" element={<HRPanel />} />
+          <Route path="*" element={<Navigate to="/hr" replace />} />
+        </Routes>
+      </div>
     );
   }
 

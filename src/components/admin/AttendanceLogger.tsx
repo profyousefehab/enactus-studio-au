@@ -14,6 +14,7 @@ import { useSessionFeedback } from '../../context/SessionFeedbackContext';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
 import StickerIcon from '../ui/StickerIcon';
+import SketchCallout from '../ui/SketchCallout';
 
 interface Member {
   id: string;
@@ -37,6 +38,12 @@ const POINT_PRESETS = [
   { label: '\u221210 Missed Deadline', amount: -10 },
   { label: 'Custom', amount: 0 },
 ];
+
+const STATUS_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
+  present: { icon: 'doodle:check', label: 'Present', color: 'var(--color-sticky-note-mint)' },
+  absent: { icon: 'doodle:x', label: 'Absent', color: '#fecaca' },
+  excused: { icon: 'doodle:minus', label: 'Excused', color: 'var(--color-highlighter-yellow)' },
+};
 
 export default function AttendanceLogger() {
   const { activateFeedback } = useSessionFeedback();
@@ -63,7 +70,6 @@ export default function AttendanceLogger() {
     const unsub = onSnapshot(collection(db, 'users'), (snap) => {
       const data = snap.docs
         .map((d) => ({ id: d.id, ...d.data() } as Member))
-        // Exclude coordinator / admin accounts from member rosters
         .filter((m) => m.role !== 'admin' && m.name?.trim().toLowerCase() !== 'yousef ehab');
       data.sort((a, b) => a.name.localeCompare(b.name));
       setMembers(data);
@@ -182,419 +188,365 @@ export default function AttendanceLogger() {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm animate-pulse" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}>
+        <p className="text-sm font-mono animate-pulse text-[var(--color-pencil-gray)]">
           Loading committee members...
         </p>
       </div>
     );
   }
 
-  const STATUS_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
-    present: { icon: 'doodle:check', label: 'Present', color: 'var(--color-sticky-note-mint)' },
-    absent: { icon: 'doodle:x', label: 'Absent', color: '#fecaca' },
-    excused: { icon: 'doodle:minus', label: 'Excused', color: 'var(--color-highlighter-yellow)' },
-  };
-
   const markedCount = Object.values(statuses).filter(Boolean).length;
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── ATTENDANCE ── */}
-      <div
-        className="p-4 sm:p-5"
-        style={{
-          backgroundColor: 'var(--color-cream-paper)',
-          border: '1px solid var(--color-forest-ink)',
-          borderRadius: 'var(--radius-cards)',
-        }}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[var(--color-pencil-gray)]">
-          <div>
-            <h4
-              className="text-base font-bold flex items-center gap-2"
-              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
+      {/* ───── In-Page Header ───── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--color-pencil-gray)]/30">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h2
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--color-forest-ink)]"
+              style={{ fontFamily: 'var(--font-bricolage)' }}
             >
-              <Icon icon="doodle:clipboard" width={18} height={18} className="shrink-0" />
-              Session Attendance
-            </h4>
-            <p className="text-xs mt-0.5" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}>
-              Mark presence to auto-track streaks and award +10 attendance points.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => markAll('present')}
-              className="px-2.5 py-1 text-xs font-semibold cursor-pointer btn-spring"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'var(--color-sticky-note-mint)',
-                border: '1px solid var(--color-forest-ink)',
-                borderRadius: 'var(--radius-buttons)',
-                color: 'var(--color-forest-ink)',
-              }}
+              Session Attendance & Points
+            </h2>
+            <span
+              className="text-[11px] font-mono font-bold px-2 py-0.5 rounded border border-[var(--color-forest-ink)]"
+              style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
             >
-              Mark all present
-            </button>
-            <button
-              onClick={() => markAll(null)}
-              className="px-2.5 py-1 text-xs cursor-pointer btn-spring"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'transparent',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-                color: 'var(--color-forest-ink)',
-              }}
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-
-        {attendanceSuccess && (
-          <div
-            className="p-3.5 mb-4 rounded-xl border border-[var(--color-forest-ink)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn shadow-xs"
-            style={{
-              backgroundColor: 'var(--color-sticky-note-mint)',
-              color: 'var(--color-forest-ink)',
-            }}
-          >
-            <div>
-              <p className="text-xs font-bold font-mono">
-                ✓ Attendance logged successfully for "{lastLoggedTitle}"!
-              </p>
-              <p className="text-[11px] font-inter text-[var(--color-forest-ink)]/80 mt-0.5">
-                Launch live session feedback so attending members can rate today's session immediately.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={async () => {
-                await activateFeedback(lastLoggedTitle);
-                setFeedbackActivated(true);
-                setTimeout(() => setFeedbackActivated(false), 4000);
-              }}
-              className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-[var(--color-forest-ink)] bg-white hover:bg-[var(--color-highlighter-yellow)] text-[var(--color-forest-ink)] cursor-pointer btn-spring whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-2xs"
-              style={{ fontFamily: 'var(--font-inter)' }}
-            >
-              <StickerIcon name="star" size={15} />
-              <span>{feedbackActivated ? 'Feedback Activated!' : 'Launch Session Feedback →'}</span>
-            </button>
-          </div>
-        )}
-
-        {/* Inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-semibold mb-1" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-              Session Title
-            </label>
-            <input
-              type="text"
-              value={sessionTitle}
-              onChange={(e) => setSessionTitle(e.target.value)}
-              placeholder="e.g. Weekly Creative Review #03"
-              className="w-full text-sm px-3 py-2 focus:outline-none"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                color: 'var(--color-forest-ink)',
-                backgroundColor: 'var(--color-cream-paper)',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold mb-1" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-              Date
-            </label>
-            <input
-              type="date"
-              value={sessionDate}
-              onChange={(e) => setSessionDate(e.target.value)}
-              className="w-full text-sm px-3 py-2 focus:outline-none"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--color-forest-ink)',
-                backgroundColor: 'var(--color-cream-paper)',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Responsive grid of members */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}>
-              Committee Members ({members.length})
-            </span>
-            <span className="text-xs" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-pencil-gray)' }}>
-              {markedCount}/{members.length} marked
+              OPERATIONS
             </span>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[480px] overflow-y-auto pr-1">
-            {members.map((m) => {
-              const s = statuses[m.id];
-              return (
-                <div
-                  key={m.id}
-                  className="flex items-center gap-2.5 p-2.5 transition-all"
-                  style={{
-                    backgroundColor: s ? STATUS_CONFIG[s].color : 'transparent',
-                    border: s ? '1.5px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
-                    borderRadius: 'var(--radius-cards)',
-                  }}
-                >
-                  <StudioAvatar avatarId={m.avatarId} customAvatarUrl={m.customAvatarUrl} size={32} />
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="text-xs font-semibold truncate"
-                      style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
-                    >
-                      {m.name}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <TrackBadge track={m.track} size="sm" />
-                      <span className="text-[10px]" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-pencil-gray)' }}>
-                        {m.sessionStreak}🔥
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-1 shrink-0">
-                    {(['present', 'absent', 'excused'] as const).map((st) => (
-                      <button
-                        key={st}
-                        onClick={() => setStatus(m.id, st)}
-                        className="w-7 h-7 flex items-center justify-center cursor-pointer btn-spring"
-                        style={{
-                          borderRadius: 'var(--radius-buttons)',
-                          border: s === st ? '2px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
-                          backgroundColor: s === st ? STATUS_CONFIG[st].color : 'var(--color-cream-paper)',
-                        }}
-                        title={STATUS_CONFIG[st].label}
-                        aria-label={`${m.name}: ${STATUS_CONFIG[st].label}`}
-                      >
-                        <Icon icon={STATUS_CONFIG[st].icon} width={13} height={13} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <p className="text-xs sm:text-sm text-[var(--color-pencil-gray)]" style={{ fontFamily: 'var(--font-inter)' }}>
+            Mark presence to auto-track streaks and award +10 attendance points, or adjust scores directly.
+          </p>
         </div>
 
-        <button
-          onClick={handleLogAttendance}
-          disabled={loggingAttendance || markedCount === 0}
-          className="w-full mt-4 py-2.5 text-sm font-semibold cursor-pointer btn-spring"
-          style={{
-            fontFamily: 'var(--font-inter)',
-            backgroundColor: 'var(--color-forest-ink)',
-            color: 'var(--color-cream-paper)',
-            border: 'none',
-            borderRadius: 'var(--radius-buttons)',
-            opacity: loggingAttendance || markedCount === 0 ? 0.4 : 1,
-          }}
-        >
-          {loggingAttendance ? 'Saving Attendance...' : `Submit Attendance for ${markedCount} Member${markedCount !== 1 ? 's' : ''} \u2192`}
-        </button>
+        <SketchCallout
+          text="pin stays in view while scrolling ⤵"
+          arrow="down-right"
+          color="#cb5521"
+          rotate="-rotate-2"
+          fontSize={18}
+        />
       </div>
 
-      {/* ── QUICK POINTS ── */}
-      <div
-        className="p-4 sm:p-5"
-        style={{
-          backgroundColor: 'var(--color-cream-paper)',
-          border: '1px solid var(--color-forest-ink)',
-          borderRadius: 'var(--radius-cards)',
-        }}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[var(--color-pencil-gray)]">
-          <div>
-            <h4
-              className="text-base font-bold flex items-center gap-2"
-              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
-            >
-              <Icon icon="doodle:star" width={18} height={18} className="shrink-0" />
-              Award Points
-            </h4>
-            <p className="text-xs mt-0.5" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}>
-              Select members and apply point rewards or penalties with a single click.
-            </p>
+      {/* ───── Shared 2-Column Section Template (Desktop lg+) ───── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (~2/3): Scrollable Member Attendance Checklist + Point Recipients */}
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+          {/* Attendance Checklist Card */}
+          <div
+            className="p-4 sm:p-5 rounded-2xl border border-[var(--color-forest-ink)] shadow-xs"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
+          >
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <div className="flex items-center gap-2">
+                <Icon icon="doodle:clipboard" width={18} height={18} className="text-[var(--color-forest-ink)]" />
+                <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                  Committee Roster ({members.length})
+                </span>
+              </div>
+              <span className="text-xs font-mono font-medium text-[var(--color-pencil-gray)]">
+                {markedCount}/{members.length} marked
+              </span>
+            </div>
+
+            {/* Scrollable list of members */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 max-h-[520px] overflow-y-auto pr-1">
+              {members.map((m) => {
+                const s = statuses[m.id];
+                return (
+                  <div
+                    key={m.id}
+                    className="flex items-center gap-2.5 p-2.5 transition-all card-spring"
+                    style={{
+                      backgroundColor: s ? STATUS_CONFIG[s].color : 'white',
+                      border: s ? '1.5px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
+                      borderRadius: 'var(--radius-cards)',
+                    }}
+                  >
+                    <StudioAvatar avatarId={m.avatarId} customAvatarUrl={m.customAvatarUrl} size={32} />
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className="text-xs font-semibold truncate text-[var(--color-forest-ink)]"
+                        style={{ fontFamily: 'var(--font-inter)' }}
+                      >
+                        {m.name}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <TrackBadge track={m.track} size="sm" />
+                        <span className="text-[10px] font-mono text-[var(--color-pencil-gray)]">
+                          {m.sessionStreak}🔥
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-1 shrink-0">
+                      {(['present', 'absent', 'excused'] as const).map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => setStatus(m.id, st)}
+                          className="w-7 h-7 flex items-center justify-center cursor-pointer btn-spring"
+                          style={{
+                            borderRadius: 'var(--radius-buttons)',
+                            border: s === st ? '2px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
+                            backgroundColor: s === st ? STATUS_CONFIG[st].color : 'var(--color-cream-paper)',
+                          }}
+                          title={STATUS_CONFIG[st].label}
+                          aria-label={`${m.name}: ${STATUS_CONFIG[st].label}`}
+                        >
+                          <Icon icon={STATUS_CONFIG[st].icon} width={13} height={13} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <button
-              onClick={() => selectAllMembers()}
-              className="px-2 py-1 text-xs cursor-pointer btn-spring"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'transparent',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-                color: 'var(--color-forest-ink)',
-              }}
-            >
-              Select All
-            </button>
-            <button
-              onClick={() => selectAllMembers('Design')}
-              className="px-2 py-1 text-xs cursor-pointer btn-spring"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'transparent',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-                color: 'var(--color-forest-ink)',
-              }}
-            >
-              All Design
-            </button>
-            <button
-              onClick={() => selectAllMembers('Content')}
-              className="px-2 py-1 text-xs cursor-pointer btn-spring"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                backgroundColor: 'transparent',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
-                color: 'var(--color-forest-ink)',
-              }}
-            >
-              All Content
-            </button>
-            {selectedMembers.size > 0 && (
-              <button
-                onClick={clearMemberSelection}
-                className="px-2 py-1 text-xs cursor-pointer btn-spring"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  backgroundColor: 'transparent',
-                  border: '1px solid var(--color-terracotta)',
-                  borderRadius: 'var(--radius-buttons)',
-                  color: 'var(--color-terracotta)',
-                }}
-              >
-                Clear
-              </button>
-            )}
+          {/* Quick Points Recipient Selection Card */}
+          <div
+            className="p-4 sm:p-5 rounded-2xl border border-[var(--color-forest-ink)] shadow-xs"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <div className="flex items-center gap-2">
+                <Icon icon="doodle:star" width={18} height={18} className="text-[var(--color-forest-ink)]" />
+                <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                  Award Points Recipients ({selectedMembers.size} selected)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => selectAllMembers()}
+                  className="px-2 py-0.5 text-xs font-mono rounded border border-[var(--color-pencil-gray)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectAllMembers('Design')}
+                  className="px-2 py-0.5 text-xs font-mono rounded border border-[var(--color-pencil-gray)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring"
+                >
+                  Design
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectAllMembers('Content')}
+                  className="px-2 py-0.5 text-xs font-mono rounded border border-[var(--color-pencil-gray)] bg-white text-[var(--color-forest-ink)] hover:bg-gray-50 cursor-pointer btn-spring"
+                >
+                  Content
+                </button>
+                {selectedMembers.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearMemberSelection}
+                    className="px-2 py-0.5 text-xs font-mono rounded border border-[var(--color-terracotta)] text-[var(--color-terracotta)] hover:bg-[#ffebe6] cursor-pointer btn-spring"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1">
+              {members.map((m) => {
+                const isSelected = selectedMembers.has(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => toggleMember(m.id)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs cursor-pointer pill-spring"
+                    style={{
+                      fontFamily: 'var(--font-inter)',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor: isSelected ? 'var(--color-sticky-note-teal)' : 'white',
+                      border: isSelected ? '1.5px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
+                      color: 'var(--color-forest-ink)',
+                      fontWeight: isSelected ? 600 : 400,
+                    }}
+                  >
+                    <StudioAvatar avatarId={m.avatarId} customAvatarUrl={m.customAvatarUrl} size={18} />
+                    <span>{m.name}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {pointsSuccess && (
+        {/* Right Column (~1/3): Sticky Controls Rail */}
+        <div className="lg:col-span-5 xl:col-span-4 sticky top-20 z-10 flex flex-col gap-4">
+          {/* Attendance Controls Box */}
           <div
-            className="text-xs font-medium px-3 py-2 mb-4"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              backgroundColor: 'var(--color-sticky-note-mint)',
-              border: '1px solid var(--color-forest-ink)',
-              borderRadius: 'var(--radius-buttons)',
-              color: 'var(--color-forest-ink)',
-            }}
+            className="p-4 sm:p-5 rounded-2xl border-2 border-[var(--color-forest-ink)] shadow-sm"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
           >
-            Points applied successfully.
-          </div>
-        )}
-
-        {/* Member selector chips */}
-        <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}>
-            Select Recipients ({selectedMembers.size} selected)
-          </p>
-          <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1">
-            {members.map((m) => {
-              const isSelected = selectedMembers.has(m.id);
-              return (
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                Attendance Controls
+              </span>
+              <div className="flex items-center gap-1.5">
                 <button
-                  key={m.id}
-                  onClick={() => toggleMember(m.id)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs cursor-pointer pill-spring"
+                  type="button"
+                  onClick={() => markAll('present')}
+                  className="px-2 py-0.5 text-[11px] font-mono font-semibold rounded border border-[var(--color-forest-ink)] bg-[var(--color-sticky-note-mint)] text-[var(--color-forest-ink)] cursor-pointer btn-spring"
+                >
+                  Mark All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => markAll(null)}
+                  className="px-2 py-0.5 text-[11px] font-mono rounded border border-[var(--color-pencil-gray)] bg-white text-[var(--color-forest-ink)] cursor-pointer btn-spring"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            {attendanceSuccess && (
+              <div
+                className="p-3 mb-3 rounded-xl border border-[var(--color-forest-ink)] bg-[var(--color-sticky-note-mint)] text-[var(--color-forest-ink)] animate-fadeIn text-xs shadow-2xs"
+              >
+                <p className="font-bold font-mono">
+                  ✓ Attendance logged for "{lastLoggedTitle}"!
+                </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await activateFeedback(lastLoggedTitle);
+                    setFeedbackActivated(true);
+                    setTimeout(() => setFeedbackActivated(false), 4000);
+                  }}
+                  className="mt-2 w-full py-1.5 px-2.5 text-xs font-bold rounded-lg border border-[var(--color-forest-ink)] bg-white hover:bg-[var(--color-highlighter-yellow)] text-[var(--color-forest-ink)] cursor-pointer btn-spring flex items-center justify-center gap-1.5"
+                >
+                  <StickerIcon name="star" size={14} />
+                  <span>{feedbackActivated ? 'Feedback Activated!' : 'Launch Live Feedback →'}</span>
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-bold mb-1 text-[var(--color-forest-ink)] font-inter">
+                  Session Title
+                </label>
+                <input
+                  type="text"
+                  value={sessionTitle}
+                  onChange={(e) => setSessionTitle(e.target.value)}
+                  placeholder="e.g. Workshop #04 & Brand Sprint"
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-[var(--color-pencil-gray)] focus:border-[var(--color-forest-ink)] focus:outline-none bg-white text-[var(--color-forest-ink)]"
+                  style={{ fontFamily: 'var(--font-inter)' }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold mb-1 text-[var(--color-forest-ink)] font-inter">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={sessionDate}
+                  onChange={(e) => setSessionDate(e.target.value)}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-[var(--color-pencil-gray)] focus:border-[var(--color-forest-ink)] focus:outline-none bg-white text-[var(--color-forest-ink)] font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Exactly ONE dark-green primary CTA */}
+            <button
+              type="button"
+              onClick={handleLogAttendance}
+              disabled={loggingAttendance || markedCount === 0}
+              className="w-full py-2.5 text-xs font-bold cursor-pointer btn-spring rounded-xl border border-[var(--color-forest-ink)] text-center transition-all disabled:opacity-40"
+              style={{
+                fontFamily: 'var(--font-inter)',
+                backgroundColor: 'var(--color-forest-ink)',
+                color: 'var(--color-cream-paper)',
+              }}
+            >
+              {loggingAttendance
+                ? 'Saving Attendance...'
+                : `Submit Attendance (${markedCount} marked) →`}
+            </button>
+          </div>
+
+          {/* Quick Points Adjustment Rail Card */}
+          <div
+            className="p-4 sm:p-5 rounded-2xl border border-[var(--color-forest-ink)] shadow-xs"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
+          >
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--color-pencil-gray)]/30">
+              <span className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]">
+                Score Adjustment
+              </span>
+              <span className="text-[11px] font-mono text-[var(--color-pencil-gray)]">
+                {selectedMembers.size} selected
+              </span>
+            </div>
+
+            {pointsSuccess && (
+              <div className="text-xs font-mono font-bold px-2.5 py-1.5 mb-3 rounded-lg border border-[var(--color-forest-ink)] bg-[var(--color-sticky-note-mint)] text-[var(--color-forest-ink)]">
+                Points applied successfully.
+              </div>
+            )}
+
+            {/* Presets */}
+            <div className="grid grid-cols-2 gap-1.5 mb-3">
+              {POINT_PRESETS.map((p, i) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => setPresetIdx(i)}
+                  className="text-xs py-1.5 px-2 text-center rounded-lg cursor-pointer btn-spring transition-colors"
                   style={{
-                    fontFamily: 'var(--font-inter)',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: isSelected ? 'var(--color-sticky-note-teal)' : 'var(--color-cream-paper)',
-                    border: isSelected ? '1.5px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
-                    color: 'var(--color-forest-ink)',
-                    fontWeight: isSelected ? 600 : 400,
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: presetIdx === i ? 'var(--color-highlighter-yellow)' : 'white',
+                    border: presetIdx === i ? '1.5px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
+                    color: p.amount < 0 ? 'var(--color-terracotta)' : 'var(--color-forest-ink)',
+                    fontWeight: presetIdx === i ? 700 : 500,
                   }}
                 >
-                  <StudioAvatar avatarId={m.avatarId} customAvatarUrl={m.customAvatarUrl} size={18} />
-                  <span>{m.name}</span>
+                  {p.label}
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        {/* Preset selector */}
-        <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}>
-            Point Reason & Amount
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {POINT_PRESETS.map((p, i) => (
-              <button
-                key={p.label}
-                onClick={() => setPresetIdx(i)}
-                className="text-xs py-2 px-2.5 text-center cursor-pointer btn-spring"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  borderRadius: 'var(--radius-buttons)',
-                  backgroundColor: presetIdx === i ? 'var(--color-highlighter-yellow)' : 'var(--color-cream-paper)',
-                  border: presetIdx === i ? '2px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
-                  color: p.amount < 0 ? 'var(--color-terracotta)' : 'var(--color-forest-ink)',
-                  fontWeight: presetIdx === i ? 700 : 500,
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </div>
+            {POINT_PRESETS[presetIdx].label === 'Custom' && (
+              <div className="mb-3">
+                <input
+                  type="number"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  placeholder="e.g. 25 or -10"
+                  className="w-full text-xs px-3 py-1.5 rounded-lg border border-[var(--color-pencil-gray)] focus:border-[var(--color-forest-ink)] focus:outline-none bg-white font-mono text-[var(--color-forest-ink)]"
+                />
+              </div>
+            )}
 
-        {POINT_PRESETS[presetIdx].label === 'Custom' && (
-          <div className="mb-4">
-            <label className="block text-xs font-semibold mb-1" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
-              Custom Amount (+ or −)
-            </label>
-            <input
-              type="number"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder="e.g. 25 or -10"
-              className="w-full sm:w-64 text-sm px-3 py-2 focus:outline-none"
+            {/* Action CTA */}
+            <button
+              type="button"
+              onClick={handleApplyPoints}
+              disabled={applyingPoints || selectedMembers.size === 0}
+              className="w-full py-2 text-xs font-bold cursor-pointer btn-spring rounded-lg border border-[var(--color-forest-ink)] transition-opacity disabled:opacity-40"
               style={{
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--color-forest-ink)',
-                backgroundColor: 'var(--color-cream-paper)',
-                border: '1px solid var(--color-pencil-gray)',
-                borderRadius: 'var(--radius-buttons)',
+                fontFamily: 'var(--font-inter)',
+                backgroundColor: 'var(--color-forest-ink)',
+                color: 'var(--color-cream-paper)',
               }}
-            />
+            >
+              {applyingPoints
+                ? 'Applying Points...'
+                : `Award to ${selectedMembers.size} Member${selectedMembers.size !== 1 ? 's' : ''} →`}
+            </button>
           </div>
-        )}
-
-        <button
-          onClick={handleApplyPoints}
-          disabled={applyingPoints || selectedMembers.size === 0}
-          className="w-full py-2.5 text-sm font-semibold cursor-pointer btn-spring"
-          style={{
-            fontFamily: 'var(--font-inter)',
-            backgroundColor: 'var(--color-forest-ink)',
-            color: 'var(--color-cream-paper)',
-            border: 'none',
-            borderRadius: 'var(--radius-buttons)',
-            opacity: applyingPoints || selectedMembers.size === 0 ? 0.4 : 1,
-          }}
-        >
-          {applyingPoints ? 'Applying Points...' : `Award Points to ${selectedMembers.size} Member${selectedMembers.size !== 1 ? 's' : ''} \u2192`}
-        </button>
+        </div>
       </div>
     </div>
   );

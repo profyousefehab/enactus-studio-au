@@ -39,8 +39,9 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.pinCode is string
                     && request.resource.data.pinCode.size() == 4
-                    && request.resource.data.role == 'member';
+                    && (request.resource.data.role == 'member' || request.resource.data.role == 'hr');
       allow update: if true;
+      allow delete: if true;
     }
 
     match /wallPosts/{postId} {
@@ -57,7 +58,7 @@ service cloud.firestore {
     }
 
     match /attendance/{attId} {
-      allow read, create, update: if true;
+      allow read, create, update, delete: if true;
     }
 
     match /sessionFeedbackResponses/{responseId} {

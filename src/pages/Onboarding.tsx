@@ -238,7 +238,11 @@ export default function Onboarding() {
               try {
                 const user = await login(loginPin, loginName || undefined);
                 if (user) {
-                  navigate('/');
+                  if (user.role === 'hr') {
+                    navigate('/hr');
+                  } else {
+                    navigate('/');
+                  }
                 } else {
                   setLoginError('No matching account found. Check your PIN and name.');
                 }

@@ -16,7 +16,7 @@ export interface User {
   track: 'Design' | 'Content';
   avatarId: string;
   customAvatarUrl?: string | null;
-  role: 'member' | 'admin';
+  role: 'member' | 'admin' | 'hr';
   points: number;
   sessionStreak: number;
   bestStreak: number;
@@ -48,6 +48,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // Active user ID restored from localStorage
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
+    if (import.meta.env.DEV && (typeof window !== 'undefined' && (window.location.search.includes('dev_hr=true') || localStorage.getItem('dev_role') === 'hr'))) {
+      return 'dev-hr';
+    }
+    if (import.meta.env.DEV && (typeof window !== 'undefined' && (window.location.search.includes('dev_admin=true') || localStorage.getItem('dev_admin') === 'true'))) {
+      return 'dev-admin';
+    }
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
@@ -135,6 +141,42 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // Live Firestore onSnapshot listener for the logged-in user
   useEffect(() => {
+    if (import.meta.env.DEV && currentUserId === 'dev-hr') {
+      setUserState({
+        id: 'dev-hr',
+        name: 'HR Operations Lead',
+        nameLower: 'hr operations lead',
+        pinCode: '1111',
+        track: 'Design',
+        avatarId: '1',
+        role: 'hr',
+        points: 0,
+        sessionStreak: 0,
+        bestStreak: 0,
+        feedbackPartnerId: null,
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (import.meta.env.DEV && currentUserId === 'dev-admin') {
+      setUserState({
+        id: 'dev-admin',
+        name: 'Coordinator',
+        nameLower: 'coordinator',
+        pinCode: '0000',
+        track: 'Design',
+        avatarId: '1',
+        role: 'admin',
+        points: 0,
+        sessionStreak: 0,
+        bestStreak: 0,
+        feedbackPartnerId: null,
+      });
+      setLoading(false);
+      return;
+    }
+
     if (!currentUserId) {
       setUserState(null);
       prevUserRef.current = null;

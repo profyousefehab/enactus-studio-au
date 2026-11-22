@@ -25,7 +25,7 @@ export interface AdminMember {
   nameLower?: string;
   pinCode: string;
   track: 'Design' | 'Content';
-  role: 'member' | 'admin';
+  role: 'member' | 'admin' | 'hr';
   points: number;
   sessionStreak: number;
   bestStreak: number;
@@ -50,15 +50,42 @@ const POINT_ACTIONS = [
   { label: '\u221210 Missed Deadline', amount: -10, bg: 'var(--color-sticky-note-blush)' },
 ];
 
-export default function MembersRoster() {
+export interface MembersRosterProps {
+  showMetrics?: boolean;
+  searchQuery?: string;
+  onSearchQueryChange?: (q: string) => void;
+  trackFilter?: 'All' | 'Design' | 'Content';
+  onTrackFilterChange?: (t: 'All' | 'Design' | 'Content') => void;
+  sortBy?: 'rank-desc' | 'rank-asc' | 'name-asc' | 'streak-desc' | 'pin-asc';
+  onSortByChange?: (s: 'rank-desc' | 'rank-asc' | 'name-asc' | 'streak-desc' | 'pin-asc') => void;
+}
+
+export default function MembersRoster({
+  showMetrics = false,
+  searchQuery: externalSearch,
+  onSearchQueryChange,
+  trackFilter: externalTrack,
+  onTrackFilterChange,
+  sortBy: externalSort,
+  onSortByChange,
+}: MembersRosterProps = {}) {
   const [members, setMembers] = useState<AdminMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [trackFilter, setTrackFilter] = useState<'All' | 'Design' | 'Content'>('All');
-  const [sortBy, setSortBy] = useState<'rank-desc' | 'rank-asc' | 'name-asc' | 'streak-desc' | 'pin-asc'>('rank-desc');
+  const [internalSearch, setInternalSearch] = useState('');
+  const [internalTrack, setInternalTrack] = useState<'All' | 'Design' | 'Content'>('All');
+  const [internalSort, setInternalSort] = useState<'rank-desc' | 'rank-asc' | 'name-asc' | 'streak-desc' | 'pin-asc'>('rank-desc');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [selectedMember, setSelectedMember] = useState<AdminMember | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const searchQuery = externalSearch !== undefined ? externalSearch : internalSearch;
+  const setSearchQuery = onSearchQueryChange || setInternalSearch;
+
+  const trackFilter = externalTrack !== undefined ? externalTrack : internalTrack;
+  const setTrackFilter = onTrackFilterChange || setInternalTrack;
+
+  const sortBy = externalSort !== undefined ? externalSort : internalSort;
+  const setSortBy = onSortByChange || setInternalSort;
 
   // Subscribe to users collection
   useEffect(() => {
@@ -72,9 +99,9 @@ export default function MembersRoster() {
           bestStreak: d.data().bestStreak ?? 0,
         })) as AdminMember[];
 
-      // Filter out admin coordinator accounts from standard committee member rankings
+      // Filter out admin & HR accounts from standard committee member rankings
       const filteredMembers = data.filter(
-        (m) => m.role !== 'admin' && m.name?.trim().toLowerCase() !== 'yousef ehab'
+        (m) => m.role !== 'admin' && m.role !== 'hr' && m.name?.trim().toLowerCase() !== 'yousef ehab'
       );
 
       setMembers(filteredMembers);
@@ -211,76 +238,78 @@ export default function MembersRoster() {
         </div>
       </div>
 
-      {/* ───── Key Metrics Strip ───── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div
-          className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
-          style={{ backgroundColor: 'var(--color-cream-paper)' }}
-        >
-          <span className="text-[11px] font-mono uppercase text-[var(--color-pencil-gray)] font-bold">
-            Total Members
-          </span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
-              {stats.total}
+      {/* ───── Key Metrics Strip (Only rendered if showMetrics is true; otherwise live solely on Dashboard) ───── */}
+      {showMetrics && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div
+            className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
+            style={{ backgroundColor: 'var(--color-cream-paper)' }}
+          >
+            <span className="text-[11px] font-mono uppercase text-[var(--color-pencil-gray)] font-bold">
+              Total Members
             </span>
-            <span className="text-xs font-medium font-inter text-[var(--color-pencil-gray)]">
-              active
-            </span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
+                {stats.total}
+              </span>
+              <span className="text-xs font-medium font-inter text-[var(--color-pencil-gray)]">
+                active
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div
-          className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
-          style={{ backgroundColor: 'var(--color-sticky-note-teal)' }}
-        >
-          <span className="text-[11px] font-mono uppercase text-[var(--color-forest-ink)]/80 font-bold">
-            Design Track
-          </span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
-              {stats.design}
+          <div
+            className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
+            style={{ backgroundColor: 'var(--color-sticky-note-teal)' }}
+          >
+            <span className="text-[11px] font-mono uppercase text-[var(--color-forest-ink)]/80 font-bold">
+              Design Track
             </span>
-            <span className="text-xs font-medium font-inter text-[var(--color-forest-ink)]/70">
-              creatives
-            </span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
+                {stats.design}
+              </span>
+              <span className="text-xs font-medium font-inter text-[var(--color-forest-ink)]/70">
+                creatives
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div
-          className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
-          style={{ backgroundColor: 'var(--color-sticky-note-mint)' }}
-        >
-          <span className="text-[11px] font-mono uppercase text-[var(--color-forest-ink)]/80 font-bold">
-            Content Track
-          </span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
-              {stats.content}
+          <div
+            className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
+            style={{ backgroundColor: 'var(--color-sticky-note-mint)' }}
+          >
+            <span className="text-[11px] font-mono uppercase text-[var(--color-forest-ink)]/80 font-bold">
+              Content Track
             </span>
-            <span className="text-xs font-medium font-inter text-[var(--color-forest-ink)]/70">
-              writers
-            </span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
+                {stats.content}
+              </span>
+              <span className="text-xs font-medium font-inter text-[var(--color-forest-ink)]/70">
+                writers
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div
-          className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
-          style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
-        >
-          <span className="text-[11px] font-mono uppercase text-[var(--color-forest-ink)] font-bold">
-            Total Score
-          </span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
-              {stats.totalPoints}
+          <div
+            className="p-3 rounded-lg border border-[var(--color-forest-ink)] flex flex-col justify-between"
+            style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
+          >
+            <span className="text-[11px] font-mono uppercase text-[var(--color-forest-ink)] font-bold">
+              Total Score
             </span>
-            <span className="text-xs font-mono font-medium text-[var(--color-forest-ink)]">
-              pts (avg {stats.avgPoints})
-            </span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold font-mono text-[var(--color-forest-ink)]">
+                {stats.totalPoints}
+              </span>
+              <span className="text-xs font-mono font-medium text-[var(--color-forest-ink)]">
+                pts (avg {stats.avgPoints})
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ───── Search & Filter Toolbar ───── */}
       <div
@@ -461,7 +490,7 @@ export default function MembersRoster() {
 
       {/* ───── CARDS GRID VIEW ───── */}
       {!loading && processedMembers.length > 0 && viewMode === 'cards' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5">
           {processedMembers.map((member) => {
             const overallRank = memberRankings.overallMap.get(member.id) ?? 999;
             const trackRank =
