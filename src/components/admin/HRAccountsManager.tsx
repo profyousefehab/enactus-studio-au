@@ -14,6 +14,7 @@ import { Icon } from '@iconify/react';
 import { db } from '../../lib/firebase';
 import StudioAvatar from '../ui/StudioAvatar';
 import SketchCallout from '../ui/SketchCallout';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface HRAccount {
   id: string;
@@ -34,6 +35,11 @@ export default function HRAccountsManager() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Deletion confirmation state
+  const [hrToDelete, setHrToDelete] = useState<HRAccount | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   // Subscribe to all HR accounts
   useEffect(() => {
@@ -112,19 +118,28 @@ export default function HRAccountsManager() {
     }
   }
 
-  // Handle removing an HR account
-  async function handleRemoveHR(account: HRAccount) {
-    if (!window.confirm(`Are you sure you want to remove HR account for "${account.name}"? They will no longer be able to log in.`)) {
-      return;
-    }
+  // Prompt removal of an HR account
+  function handleRemoveHR(account: HRAccount) {
+    setRemoveError(null);
+    setHrToDelete(account);
+  }
+
+  async function confirmRemoveHR() {
+    const account = hrToDelete;
+    if (!account) return;
+    setIsRemoving(true);
+    setRemoveError(null);
 
     try {
       await deleteDoc(doc(db, 'users', account.id));
       setSuccessMsg(`Removed HR account "${account.name}".`);
+      setHrToDelete(null);
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       console.error('Error removing HR account:', err);
-      alert('Failed to remove account: ' + (err?.message || err));
+      setRemoveError('Failed to remove account: ' + (err?.message || err));
+    } finally {
+      setIsRemoving(false);
     }
   }
 
@@ -341,6 +356,24 @@ export default function HRAccountsManager() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(hrToDelete)}
+        title="Remove HR Account"
+        message={`Are you sure you want to remove HR account for "${hrToDelete?.name}"? They will no longer be able to log in.`}
+        confirmLabel={isRemoving ? 'Removing...' : 'Remove Account'}
+        cancelLabel="Cancel"
+        destructive={true}
+        loading={isRemoving}
+        error={removeError}
+        onConfirm={confirmRemoveHR}
+        onCancel={() => {
+          if (!isRemoving) {
+            setHrToDelete(null);
+            setRemoveError(null);
+          }
+        }}
+      />
     </div>
   );
 }

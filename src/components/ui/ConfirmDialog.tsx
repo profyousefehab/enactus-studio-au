@@ -40,7 +40,7 @@ export default function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(26, 51, 0, 0.35)' }}
       onClick={() => {
         if (!loading) onCancel();

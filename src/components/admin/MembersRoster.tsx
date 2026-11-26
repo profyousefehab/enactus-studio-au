@@ -1,14 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   collection,
   onSnapshot,
   doc,
   updateDoc,
+  deleteDoc,
   increment,
   addDoc,
   Timestamp,
   query,
   where,
+  getDocs,
   limit,
 } from 'firebase/firestore';
 import { Icon } from '@iconify/react';
@@ -17,6 +19,8 @@ import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
 import TierBadge from '../ui/TierBadge';
 import SketchCallout from '../ui/SketchCallout';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 import { getTier, getNextTier, getTierProgress } from '../../utils/tiers';
 import { isExcludedMember } from '../../utils/accounts';
 
@@ -78,6 +82,10 @@ export default function MembersRoster({
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [selectedMember, setSelectedMember] = useState<AdminMember | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<AdminMember | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
 
   const searchQuery = externalSearch !== undefined ? externalSearch : internalSearch;
   const setSearchQuery = onSearchQueryChange || setInternalSearch;
@@ -113,7 +121,11 @@ export default function MembersRoster({
   useEffect(() => {
     if (selectedMember) {
       const updated = members.find((m) => m.id === selectedMember.id);
-      if (updated) setSelectedMember(updated);
+      if (updated) {
+        setSelectedMember(updated);
+      } else {
+        setSelectedMember(null);
+      }
     }
   }, [members]);
 
@@ -199,6 +211,70 @@ export default function MembersRoster({
     setTimeout(() => setCopiedId(null), 2000);
   }
 
+  async function handleDeleteMember() {
+    if (!memberToDelete) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      // If member has a feedback partner, clear their partner's reference
+      if (memberToDelete.feedbackPartnerId) {
+        try {
+          const partnerDocRef = doc(db, 'users', memberToDelete.feedbackPartnerId);
+          await updateDoc(partnerDocRef, { feedbackPartnerId: null });
+        } catch {
+          // Partner might not exist or failed to update; continue deletion
+        }
+      }
+
+      // Check if any other member has this member as feedback partner and clear it
+      try {
+        const pairedQuery = query(
+          collection(db, 'users'),
+          where('feedbackPartnerId', '==', memberToDelete.id),
+          limit(5)
+        );
+        const snap = await getDocs(pairedQuery);
+        for (const docSnap of snap.docs) {
+          await updateDoc(doc(db, 'users', docSnap.id), { feedbackPartnerId: null });
+        }
+      } catch {
+        // ignore
+      }
+
+      // Delete orphaned attendance records for this member
+      try {
+        const attendanceQuery = query(
+          collection(db, 'attendance'),
+          where('userId', '==', memberToDelete.id)
+        );
+        const attendanceSnap = await getDocs(attendanceQuery);
+        for (const docSnap of attendanceSnap.docs) {
+          await deleteDoc(doc(db, 'attendance', docSnap.id));
+        }
+      } catch {
+        // Ignore cleanup failure; proceed to delete user
+      }
+
+      const deletedName = memberToDelete.name;
+
+      // Delete member document
+      await deleteDoc(doc(db, 'users', memberToDelete.id));
+
+      if (selectedMember?.id === memberToDelete.id) {
+        setSelectedMember(null);
+      }
+      setMemberToDelete(null);
+      setDeleteSuccess(`Removed member "${deletedName}".`);
+      setTimeout(() => setDeleteSuccess(null), 4000);
+    } catch (err: any) {
+      console.error('Failed to delete member:', err);
+      setDeleteError(err?.message || 'Failed to delete member. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5">
       {/* ───── Header & Description ───── */}
@@ -236,6 +312,20 @@ export default function MembersRoster({
           />
         </div>
       </div>
+
+      {deleteSuccess && (
+        <div className="p-3 rounded-xl border border-[var(--color-forest-ink)] bg-[var(--color-sticky-note-mint)] text-[var(--color-forest-ink)] text-xs font-bold font-mono animate-fadeIn flex items-center justify-between">
+          <span>{deleteSuccess}</span>
+          <button
+            type="button"
+            onClick={() => setDeleteSuccess(null)}
+            className="text-[var(--color-forest-ink)] hover:opacity-70 cursor-pointer"
+            aria-label="Dismiss message"
+          >
+            <Icon icon="solar:close-circle-linear" width={16} height={16} />
+          </button>
+        </div>
+      )}
 
       {/* ───── Key Metrics Strip (Only rendered if showMetrics is true; otherwise live solely on Dashboard) ───── */}
       {showMetrics && (
@@ -624,11 +714,26 @@ export default function MembersRoster({
                     <TierBadge points={member.points} size="sm" showName={true} />
                   </div>
 
-                  {/* View Details Icon/Prompt */}
-                  <span className="text-xs font-semibold text-[var(--color-pencil-gray)] group-hover:text-[var(--color-forest-ink)] flex items-center gap-0.5 transition-colors">
-                    <span>Details</span>
-                    <Icon icon="solar:arrow-right-linear" width={14} height={14} />
-                  </span>
+                  {/* View Details Icon/Prompt & Delete Action */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteError(null);
+                        setMemberToDelete(member);
+                      }}
+                      className="p-1 rounded text-[var(--color-pencil-gray)] hover:text-[var(--color-terracotta)] hover:bg-red-50 transition-colors cursor-pointer"
+                      title={`Delete ${member.name}`}
+                      aria-label={`Delete ${member.name}`}
+                    >
+                      <Icon icon="solar:trash-bin-trash-linear" width={15} height={15} />
+                    </button>
+                    <span className="text-xs font-semibold text-[var(--color-pencil-gray)] group-hover:text-[var(--color-forest-ink)] flex items-center gap-0.5 transition-colors">
+                      <span>Details</span>
+                      <Icon icon="solar:arrow-right-linear" width={14} height={14} />
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -766,17 +871,32 @@ export default function MembersRoster({
 
                       {/* Actions */}
                       <td className="py-2.5 px-3 text-center">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedMember(member);
-                          }}
-                          className="px-2 py-1 text-xs font-semibold rounded border border-[var(--color-forest-ink)] bg-white hover:bg-[var(--color-sticky-note-mint)] transition-colors cursor-pointer btn-spring"
-                          style={{ fontFamily: 'var(--font-inter)' }}
-                        >
-                          View
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMember(member);
+                            }}
+                            className="px-2 py-1 text-xs font-semibold rounded border border-[var(--color-forest-ink)] bg-white hover:bg-[var(--color-sticky-note-mint)] transition-colors cursor-pointer btn-spring"
+                            style={{ fontFamily: 'var(--font-inter)' }}
+                          >
+                            View
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteError(null);
+                              setMemberToDelete(member);
+                            }}
+                            className="p-1 rounded text-[var(--color-pencil-gray)] hover:text-[var(--color-terracotta)] hover:bg-red-50 transition-colors cursor-pointer"
+                            title={`Delete ${member.name}`}
+                            aria-label={`Delete ${member.name}`}
+                          >
+                            <Icon icon="solar:trash-bin-trash-linear" width={15} height={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -802,8 +922,32 @@ export default function MembersRoster({
           onClose={() => setSelectedMember(null)}
           onCopy={copyText}
           isCopied={copiedId === selectedMember.id}
+          onDelete={(m) => {
+            setDeleteError(null);
+            setMemberToDelete(m);
+          }}
+          isDeleteDialogOpen={Boolean(memberToDelete)}
         />
       )}
+
+      {/* Confirm Delete Member Dialog */}
+      <ConfirmDialog
+        open={Boolean(memberToDelete)}
+        title="Delete Member"
+        message={`Are you sure you want to permanently delete "${memberToDelete?.name}" (PIN: #${memberToDelete?.pinCode})? All profile data will be permanently removed.`}
+        confirmLabel={isDeleting ? 'Deleting...' : 'Delete Member'}
+        cancelLabel="Cancel"
+        destructive={true}
+        loading={isDeleting}
+        error={deleteError}
+        onConfirm={handleDeleteMember}
+        onCancel={() => {
+          if (!isDeleting) {
+            setMemberToDelete(null);
+            setDeleteError(null);
+          }
+        }}
+      />
     </div>
   );
 }
@@ -821,6 +965,8 @@ function MemberDetailModal({
   onClose,
   onCopy,
   isCopied,
+  onDelete,
+  isDeleteDialogOpen,
 }: {
   member: AdminMember;
   overallRank: number;
@@ -830,13 +976,18 @@ function MemberDetailModal({
   onClose: () => void;
   onCopy: (text: string, id: string) => void;
   isCopied: boolean;
+  onDelete: (member: AdminMember) => void;
+  isDeleteDialogOpen: boolean;
 }) {
+  const modalRef = useRef<HTMLDivElement>(null);
   const [pointEvents, setPointEvents] = useState<PointEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [customAmount, setCustomAmount] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [applyingPoints, setApplyingPoints] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  useFocusTrap(!isDeleteDialogOpen, modalRef, onClose);
 
   const tier = getTier(member.points);
   const nextTier = getNextTier(member.points);
@@ -950,7 +1101,12 @@ function MemberDetailModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl max-h-[92vh] flex flex-col rounded-2xl border-2 border-[var(--color-forest-ink)] overflow-hidden shadow-2xl relative"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${member.name} member details`}
+        tabIndex={-1}
+        className="w-full max-w-xl max-h-[92vh] flex flex-col rounded-2xl border-2 border-[var(--color-forest-ink)] overflow-hidden relative"
         style={{ backgroundColor: 'var(--color-cream-paper)' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -1325,20 +1481,32 @@ function MemberDetailModal({
 
         {/* Modal Bottom Footer */}
         <div
-          className="p-3 sm:p-4 border-t border-[var(--color-forest-ink)] flex items-center justify-between gap-3 bg-[var(--color-cream-paper)]"
+          className="p-3 sm:p-4 border-t border-[var(--color-forest-ink)] flex flex-wrap items-center justify-between gap-2.5 bg-[var(--color-cream-paper)]"
         >
-          <button
-            type="button"
-            onClick={() => {
-              const text = `Enactus AU Beta\nMember: ${member.name}\nMember ID: #${member.pinCode}\nTrack: ${member.track}\nScore: ${member.points} pts`;
-              onCopy(text, member.id);
-            }}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--color-forest-ink)] bg-white cursor-pointer btn-spring flex items-center gap-1.5"
-            style={{ fontFamily: 'var(--font-inter)' }}
-          >
-            <Icon icon="solar:copy-linear" width={14} height={14} />
-            <span>{isCopied ? 'Credentials Copied!' : 'Copy Member Info'}</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                const text = `Enactus AU Beta\nMember: ${member.name}\nMember ID: #${member.pinCode}\nTrack: ${member.track}\nScore: ${member.points} pts`;
+                onCopy(text, member.id);
+              }}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--color-forest-ink)] bg-white cursor-pointer btn-spring flex items-center gap-1.5"
+              style={{ fontFamily: 'var(--font-inter)' }}
+            >
+              <Icon icon="solar:copy-linear" width={14} height={14} />
+              <span>{isCopied ? 'Credentials Copied!' : 'Copy Member Info'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onDelete(member)}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--color-terracotta)]/50 bg-white text-[var(--color-terracotta)] hover:bg-[#ffebe6] cursor-pointer btn-spring flex items-center gap-1.5 transition-colors"
+              style={{ fontFamily: 'var(--font-inter)' }}
+            >
+              <Icon icon="solar:trash-bin-trash-linear" width={14} height={14} />
+              <span>Delete Member</span>
+            </button>
+          </div>
 
           <button
             type="button"
