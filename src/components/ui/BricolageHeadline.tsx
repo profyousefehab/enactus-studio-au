@@ -12,7 +12,7 @@ interface Props {
 /**
  * Display headline using Bricolage Grotesque 800 with optional
  * organic chisel-tip marker brush stroke highlights on specific words.
- * Letter-spacing tuned to 0.015em for crisp, punchy studio headlines.
+ * Letter-spacing set to 0.04em per DESIGN.md display specification.
  */
 export default function BricolageHeadline({
   children,
@@ -28,7 +28,7 @@ export default function BricolageHeadline({
           fontFamily: 'var(--font-bricolage)',
           fontWeight: 800,
           color: 'var(--color-forest-ink)',
-          letterSpacing: '0.015em',
+          letterSpacing: '0.04em',
         }}
       >
         {children}
@@ -47,7 +47,7 @@ export default function BricolageHeadline({
         fontFamily: 'var(--font-bricolage)',
         fontWeight: 800,
         color: 'var(--color-forest-ink)',
-        letterSpacing: '0.015em',
+        letterSpacing: '0.04em',
       }}
     >
       {parts.map((part, i) =>

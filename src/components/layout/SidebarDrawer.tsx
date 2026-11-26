@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSession } from '../../context/SessionContext';
 import { useSessionFeedback } from '../../context/SessionFeedbackContext';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
 import StickerIcon from '../ui/StickerIcon';
@@ -26,15 +27,8 @@ export default function SidebarDrawer({ open, onClose }: Props) {
   const location = useLocation();
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Trap focus inside drawer when open
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  // Trap focus inside drawer and close on Escape when open
+  useFocusTrap(open, drawerRef, onClose);
 
   // Prevent body scroll when open
   useEffect(() => {
@@ -69,26 +63,33 @@ export default function SidebarDrawer({ open, onClose }: Props) {
       <div
         ref={drawerRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal={open ? 'true' : undefined}
+        aria-hidden={!open}
+        inert={!open || undefined}
         aria-label="Navigation menu"
-        className="fixed top-0 left-0 z-50 h-full w-72 flex flex-col transition-transform duration-250 ease-in-out"
+        tabIndex={-1}
+        className={`fixed top-0 left-0 z-50 h-full w-72 flex flex-col transition-all duration-250 ease-in-out ${
+          open ? 'visible pointer-events-auto' : 'invisible pointer-events-none'
+        }`}
         style={{
           backgroundColor: 'var(--color-cream-paper)',
           borderRight: '1px solid var(--color-forest-ink)',
           transform: open ? 'translateX(0)' : 'translateX(-100%)',
         }}
       >
-        {/* Close button */}
+        {/* Close button (44x44 touch target) */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-3.5 right-3 w-8 h-8 flex items-center justify-center cursor-pointer btn-spring"
+          className="absolute top-2.5 right-2.5 w-11 h-11 flex items-center justify-center cursor-pointer btn-spring"
+          style={{ borderRadius: 'var(--radius-buttons)' }}
           aria-label="Close menu"
         >
-          <Icon icon="doodle:close" width={20} height={20} style={{ color: '#1a3300' }} />
+          <Icon icon="doodle:close" width={20} height={20} style={{ color: 'var(--color-forest-ink)' }} />
         </button>
 
         {/* Brand header with custom logo */}
-        <div className="px-5 pt-4 pb-3 flex items-center gap-2.5 border-b border-[#b6b6b6]">
+        <div className="px-5 pt-4 pb-3 flex items-center gap-2.5 border-b border-[var(--color-pencil-gray)]">
           <img
             src="/ICON.png"
             alt="Enactus AU Beta Logo"
@@ -138,8 +139,9 @@ export default function SidebarDrawer({ open, onClose }: Props) {
             return (
               <button
                 key={path}
+                type="button"
                 onClick={() => handleNav(path)}
-                className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full cursor-pointer transition-colors duration-150"
+                className="flex items-center gap-3 px-3 min-h-[44px] py-2.5 text-sm font-medium w-full cursor-pointer transition-colors duration-150"
                 style={{
                   fontFamily: 'var(--font-inter)',
                   color: 'var(--color-forest-ink)',
@@ -148,7 +150,7 @@ export default function SidebarDrawer({ open, onClose }: Props) {
                   borderRadius: 'var(--radius-buttons)',
                 }}
               >
-                <Icon icon={icon} width={20} height={20} style={{ color: '#1a3300' }} />
+                <Icon icon={icon} width={20} height={20} style={{ color: 'var(--color-forest-ink)' }} />
                 {label}
               </button>
             );
@@ -157,16 +159,17 @@ export default function SidebarDrawer({ open, onClose }: Props) {
           {/* Live Session Feedback button — conditional when feedback is live and member hasn't submitted */}
           {isFeedbackLive && (
             <button
+              type="button"
               onClick={() => {
                 openModal();
                 onClose();
               }}
-              className="flex items-center justify-between px-3 py-2.5 text-sm font-bold w-full cursor-pointer transition-all duration-150 btn-spring my-1"
+              className="flex items-center justify-between px-3 min-h-[44px] py-2.5 text-sm font-bold w-full cursor-pointer transition-all duration-150 btn-spring my-1"
               style={{
                 fontFamily: 'var(--font-inter)',
                 color: 'var(--color-forest-ink)',
                 backgroundColor: 'var(--color-sticky-note-mint)',
-                border: '1.5px solid var(--color-forest-ink)',
+                border: '1px solid var(--color-forest-ink)',
                 borderRadius: 'var(--radius-buttons)',
               }}
             >
@@ -175,10 +178,10 @@ export default function SidebarDrawer({ open, onClose }: Props) {
                 <span>Session Feedback</span>
               </div>
               <span
-                className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-[var(--color-forest-ink)] flex items-center gap-1 shadow-2xs"
+                className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-[var(--color-forest-ink)] flex items-center gap-1"
                 style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1a3300] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-forest-ink)] animate-pulse" />
                 LIVE
               </span>
             </button>
@@ -188,8 +191,9 @@ export default function SidebarDrawer({ open, onClose }: Props) {
           {user?.role === 'admin' && (
             <>
               <button
+                type="button"
                 onClick={() => handleNav('/admin')}
-                className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full cursor-pointer transition-colors duration-150"
+                className="flex items-center gap-3 px-3 min-h-[44px] py-2.5 text-sm font-medium w-full cursor-pointer transition-colors duration-150"
                 style={{
                   fontFamily: 'var(--font-inter)',
                   color: 'var(--color-forest-ink)',
@@ -198,12 +202,13 @@ export default function SidebarDrawer({ open, onClose }: Props) {
                   borderRadius: 'var(--radius-buttons)',
                 }}
               >
-                <Icon icon="doodle:gear" width={20} height={20} style={{ color: '#1a3300' }} />
+                <Icon icon="doodle:gear" width={20} height={20} style={{ color: 'var(--color-forest-ink)' }} />
                 Admin Panel
               </button>
               <button
+                type="button"
                 onClick={() => handleNav('/admin/members')}
-                className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full cursor-pointer transition-colors duration-150"
+                className="flex items-center gap-3 px-3 min-h-[44px] py-2.5 text-sm font-medium w-full cursor-pointer transition-colors duration-150"
                 style={{
                   fontFamily: 'var(--font-inter)',
                   color: 'var(--color-forest-ink)',
@@ -212,7 +217,7 @@ export default function SidebarDrawer({ open, onClose }: Props) {
                   borderRadius: 'var(--radius-buttons)',
                 }}
               >
-                <Icon icon="doodle:users" width={20} height={20} style={{ color: '#1a3300' }} />
+                <Icon icon="doodle:users" width={20} height={20} style={{ color: 'var(--color-forest-ink)' }} />
                 Members Directory
               </button>
             </>
@@ -222,8 +227,9 @@ export default function SidebarDrawer({ open, onClose }: Props) {
         {/* Logout */}
         <div className="p-4" style={{ borderTop: '1px solid var(--color-pencil-gray)' }}>
           <button
+            type="button"
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full cursor-pointer"
+            className="flex items-center gap-3 px-3 min-h-[44px] py-2.5 text-sm font-medium w-full cursor-pointer"
             style={{
               fontFamily: 'var(--font-inter)',
               color: 'var(--color-terracotta)',

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Timestamp } from 'firebase/firestore';
 import { doc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Icon } from '@iconify/react';
@@ -5,6 +6,7 @@ import { db } from '../../lib/firebase';
 import { useSession } from '../../context/SessionContext';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import ReactionPill from './ReactionPill';
 import CommentThread from './CommentThread';
 import { formatRelativeTime } from '../../utils/time';
@@ -39,15 +41,27 @@ export default function MemberPostCard({ post, userId: propUserId }: Props) {
   const { user } = useSession();
   const userId = propUserId || user?.id || '';
   const canDelete = user?.role === 'admin' || (user?.id && post.authorId === user.id);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  async function handleDelete(e: React.MouseEvent) {
+  function handleDeleteClick(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!window.confirm("Delete this post from the wall?")) return;
+    setDeleteError(null);
+    setConfirmDeleteOpen(true);
+  }
+
+  async function confirmDelete() {
+    setDeleting(true);
+    setDeleteError(null);
     try {
       await deleteDoc(doc(db, 'wallPosts', post.id));
+      setConfirmDeleteOpen(false);
     } catch (err) {
       console.error('Failed to delete post:', err);
-      alert('Failed to delete post.');
+      setDeleteError('Failed to delete post. Please try again.');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -104,8 +118,9 @@ export default function MemberPostCard({ post, userId: propUserId }: Props) {
 
         {canDelete && (
           <button
-            onClick={handleDelete}
-            className="p-1 rounded cursor-pointer transition-colors text-[var(--color-pencil-gray)] hover:text-[#cb5521] hover:bg-black/5 shrink-0"
+            type="button"
+            onClick={handleDeleteClick}
+            className="w-9 h-9 flex items-center justify-center rounded cursor-pointer transition-colors text-[var(--color-pencil-gray)] hover:text-[var(--color-terracotta)] hover:bg-black/5 shrink-0"
             title="Delete post"
             aria-label="Delete post"
           >
@@ -159,6 +174,17 @@ export default function MemberPostCard({ post, userId: propUserId }: Props) {
 
       {/* Comment thread */}
       <CommentThread postId={post.id} commentCount={post.commentCount} />
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete post?"
+        message="This post and its comments will be removed from the Team Wall."
+        confirmLabel="Delete Post"
+        loading={deleting}
+        error={deleteError}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   );
 }

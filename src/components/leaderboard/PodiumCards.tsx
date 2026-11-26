@@ -82,7 +82,6 @@ export default function PodiumCards({ members, currentUserId }: Props) {
               maxWidth: 140,
               order: config.order,
               animationDelay: config.delay,
-              boxShadow: isMe ? '0 4px 12px rgba(26, 51, 0, 0.12)' : undefined,
             }}
           >
             {/* Rank 1 handwritten annotation above the card */}
@@ -91,7 +90,7 @@ export default function PodiumCards({ members, currentUserId }: Props) {
                 <SketchCallout
                   text="top of the team"
                   arrow="down-right"
-                  color="#cb5521"
+                  color="var(--color-terracotta)"
                   rotate="-rotate-2"
                   fontSize={21}
                   arrowPosition="right"
@@ -116,14 +115,14 @@ export default function PodiumCards({ members, currentUserId }: Props) {
                 avatarId={member.avatarId}
                 customAvatarUrl={member.customAvatarUrl}
                 size={config.rank === 1 ? 58 : 46}
-                className={isMe ? 'ring-2 ring-forest-ink ring-offset-2' : ''}
+                className={isMe ? 'ring-2 ring-[var(--color-forest-ink)] ring-offset-2' : ''}
               />
               {/* Pinned Rank Badge */}
               <span
-                className="absolute -top-1 -left-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full border border-forest-ink shadow-xs"
+                className="absolute -top-1 -left-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full border border-[var(--color-forest-ink)]"
                 style={{
                   backgroundColor: config.rank === 1 ? 'var(--color-highlighter-yellow)' : 'var(--color-cream-paper)',
-                  color: '#1a3300',
+                  color: 'var(--color-forest-ink)',
                   fontFamily: 'var(--font-mono)',
                   lineHeight: '1',
                 }}
@@ -132,7 +131,7 @@ export default function PodiumCards({ members, currentUserId }: Props) {
               </span>
               {isMe && (
                 <span
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase px-1.5 py-0.2 rounded-full border border-forest-ink shadow-xs"
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase px-1.5 py-0.2 rounded-full border border-[var(--color-forest-ink)]"
                   style={{
                     backgroundColor: 'var(--color-forest-ink)',
                     color: 'var(--color-cream-paper)',

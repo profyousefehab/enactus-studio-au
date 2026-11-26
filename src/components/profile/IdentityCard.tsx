@@ -10,7 +10,6 @@ import AvatarPickerModal from './AvatarPickerModal';
 /**
  * Row 1 — Identity Card (Full Width, Clean & Airy)
  * 72px Avatar with subtle camera badge, 22px Name, Track Pill, and yellow Member ID pill
- * Using Bricolage Grotesque with decreased letter spacing.
  */
 export default function IdentityCard() {
   const { user, setUser } = useSession();
@@ -35,11 +34,10 @@ export default function IdentityCard() {
   return (
     <>
       <div
-        className="p-5 flex items-center gap-4 card-spring rounded-2xl border border-[var(--color-forest-ink)] shadow-xs profile-bricolage"
+        className="p-5 flex items-center gap-4 card-spring rounded-xl border border-[var(--color-forest-ink)]"
         style={{
           backgroundColor: 'var(--color-cream-paper)',
-          fontFamily: 'var(--font-bricolage)',
-          letterSpacing: '-0.03em',
+          fontFamily: 'var(--font-inter)',
         }}
       >
         {/* Tappable Avatar (72px) with subtle camera badge */}
@@ -53,13 +51,14 @@ export default function IdentityCard() {
           <StudioAvatar
             avatarId={user.avatarId}
             customAvatarUrl={user.customAvatarUrl}
+            alt={user.name}
             size={72}
           />
           <div
-            className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-transform group-hover:scale-110"
+            className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
             style={{
               backgroundColor: 'var(--color-highlighter-yellow)',
-              border: '1.5px solid var(--color-forest-ink)',
+              border: '1px solid var(--color-forest-ink)',
             }}
           >
             <Icon icon="doodle:camera" width={13} height={13} style={{ color: 'var(--color-forest-ink)' }} />
@@ -69,8 +68,8 @@ export default function IdentityCard() {
         {/* Member Info: Name (22px) and balanced horizontal badges row */}
         <div className="min-w-0 flex-1 flex flex-col justify-center">
           <h2
-            className="text-[22px] font-bold truncate leading-tight tracking-[-0.03em] mb-2 text-[var(--color-forest-ink)]"
-            style={{ fontFamily: 'var(--font-bricolage)', letterSpacing: '-0.03em' }}
+            className="text-[22px] font-bold truncate leading-tight mb-2 text-[var(--color-forest-ink)]"
+            style={{ fontFamily: 'var(--font-inter)' }}
           >
             {user.name}
           </h2>
@@ -80,10 +79,9 @@ export default function IdentityCard() {
 
             {user.role === 'admin' && (
               <span
-                className="text-xs font-semibold px-2 py-0.5 tracking-[-0.03em]"
+                className="text-xs font-semibold px-2 py-0.5"
                 style={{
-                  fontFamily: 'var(--font-bricolage)',
-                  letterSpacing: '-0.03em',
+                  fontFamily: 'var(--font-inter)',
                   color: 'var(--color-cream-paper)',
                   backgroundColor: 'var(--color-forest-ink)',
                   borderRadius: 'var(--radius-buttons)',
@@ -95,10 +93,9 @@ export default function IdentityCard() {
 
             {/* Member ID Pill */}
             <span
-              className="text-xs font-bold px-2 py-0.5 rounded border border-[var(--color-forest-ink)] tracking-[-0.03em]"
+              className="text-xs font-medium px-2 py-0.5 rounded border border-[var(--color-forest-ink)]"
               style={{
-                fontFamily: 'var(--font-bricolage)',
-                letterSpacing: '-0.03em',
+                fontFamily: 'var(--font-mono)',
                 color: 'var(--color-forest-ink)',
                 backgroundColor: 'var(--color-highlighter-yellow)',
               }}

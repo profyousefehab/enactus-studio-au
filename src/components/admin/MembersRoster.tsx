@@ -207,7 +207,7 @@ export default function MembersRoster({
           <div className="flex items-center gap-2">
             <h3
               className="text-xl sm:text-2xl font-bold tracking-tight"
-              style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-forest-ink)' }}
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
             >
               Members Directory
             </h3>

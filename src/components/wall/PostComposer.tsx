@@ -55,6 +55,7 @@ export default function PostComposer() {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Share an idea, question, resource, or thought with the team..."
+        aria-label="Write a post for the team wall"
         rows={2}
         className="w-full resize-none text-sm focus:outline-none"
         style={{
@@ -71,6 +72,7 @@ export default function PostComposer() {
           value={linkUrl}
           onChange={(e) => setLinkUrl(e.target.value)}
           placeholder="Add a link..."
+          aria-label="Link URL"
           className="w-full text-sm mt-2 px-0 py-1 focus:outline-none"
           style={{
             fontFamily: 'var(--font-inter)',
@@ -86,11 +88,15 @@ export default function PostComposer() {
 
       <div className="flex items-center justify-between mt-3">
         <button
+          type="button"
           onClick={() => setShowLink(!showLink)}
-          className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+          aria-expanded={showLink}
+          aria-label={showLink ? 'Remove link' : 'Add a link'}
+          className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer min-h-[36px] px-1"
           style={{
             fontFamily: 'var(--font-inter)',
-            color: 'var(--color-pencil-gray)',
+            color: 'var(--color-forest-ink)',
+            opacity: 0.75,
           }}
         >
           <StickerIcon name="link" size={16} />
@@ -98,9 +104,10 @@ export default function PostComposer() {
         </button>
 
         <button
+          type="button"
           onClick={handlePost}
           disabled={!content.trim() || posting}
-          className="px-4 py-1.5 text-xs font-semibold cursor-pointer btn-spring"
+          className="px-4 py-1.5 min-h-[36px] text-xs font-semibold cursor-pointer btn-spring"
           style={{
             fontFamily: 'var(--font-inter)',
             backgroundColor: 'var(--color-forest-ink)',
@@ -110,7 +117,7 @@ export default function PostComposer() {
             opacity: content.trim() && !posting ? 1 : 0.4,
           }}
         >
-          {posting ? 'Posting...' : 'Post'}
+          {posting ? 'Posting...' : 'Post →'}
         </button>
       </div>
     </div>

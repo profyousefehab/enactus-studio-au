@@ -16,14 +16,14 @@ export default function LiveToast() {
       role="status"
       aria-live="polite"
       onClick={dismissToast}
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#d5f5c2] border-2 border-[#1a3300] px-4 py-2.5 rounded-full shadow-md flex items-center gap-2.5 cursor-pointer btn-spring animate-fadeIn select-none max-w-[92vw]"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-sticky-note-mint)] border-2 border-[var(--color-forest-ink)] px-4 py-2.5 rounded-full flex items-center gap-2.5 cursor-pointer btn-spring animate-fadeIn select-none max-w-[92vw]"
       style={{
-        boxShadow: '0 8px 24px rgba(26, 51, 0, 0.18)',
+        boxShadow: 'var(--shadow-subtle-2)',
       }}
       title="Tap to dismiss"
     >
       <span
-        className="text-xs sm:text-sm font-bold text-[#1a3300] truncate"
+        className="text-xs sm:text-sm font-bold text-[var(--color-forest-ink)] truncate"
         style={{ fontFamily: 'var(--font-inter)' }}
       >
         {toast.message}
@@ -34,7 +34,7 @@ export default function LiveToast() {
           e.stopPropagation();
           dismissToast();
         }}
-        className="text-[#1a3300]/60 hover:text-[#1a3300] text-xs font-bold leading-none p-0.5 rounded-full transition-colors"
+        className="text-[var(--color-forest-ink)]/60 hover:text-[var(--color-forest-ink)] text-xs font-bold leading-none p-1 rounded-full transition-colors"
         aria-label="Dismiss notification"
       >
         ✕

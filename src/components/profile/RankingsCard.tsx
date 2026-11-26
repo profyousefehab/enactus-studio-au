@@ -14,7 +14,6 @@ interface RankData {
 
 /**
  * Row 3 Left — Unified Tall Rank Card
- * Pure Bricolage Grotesque typography with decreased letter spacing.
  */
 export default function RankingsCard() {
   const { user } = useSession();
@@ -53,68 +52,66 @@ export default function RankingsCard() {
   if (!user || !ranks) return null;
 
   return (
-    <div
+    <button
+      type="button"
       onClick={() => navigate('/leaderboard')}
-      role="button"
-      tabIndex={0}
-      className="p-5 min-h-[140px] flex flex-col justify-between card-spring cursor-pointer active:scale-[0.98] transition-all rounded-2xl border border-[var(--color-forest-ink)] shadow-xs hover:bg-[#fffdf9] profile-bricolage"
+      className="p-5 min-h-[140px] w-full text-left flex flex-col justify-between card-spring cursor-pointer active:scale-[0.98] transition-all rounded-xl border border-[var(--color-forest-ink)]"
       style={{
         backgroundColor: 'var(--color-cream-paper)',
-        fontFamily: 'var(--font-bricolage)',
-        letterSpacing: '-0.03em',
+        fontFamily: 'var(--font-inter)',
       }}
       title="View Leaderboard Rankings"
     >
       {/* Top: #1 Overall (of 9) */}
-      <div>
+      <div className="w-full">
         <div className="flex items-baseline justify-between gap-1">
           <span
-            className="text-2xl font-extrabold text-[var(--color-forest-ink)] leading-none tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)' }}
+            className="text-2xl font-bold text-[var(--color-forest-ink)] leading-none"
+            style={{ fontFamily: 'var(--font-mono)' }}
           >
             #{ranks.overallRank}
           </span>
           <span
-            className="text-xs font-semibold text-[var(--color-pencil-gray)] tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)' }}
+            className="text-xs font-medium text-[var(--color-forest-ink)]/65"
+            style={{ fontFamily: 'var(--font-mono)' }}
           >
             of {ranks.totalMembers}
           </span>
         </div>
         <p
-          className="text-xs font-bold text-[var(--color-forest-ink)] mt-1 tracking-[-0.03em]"
-          style={{ fontFamily: 'var(--font-bricolage)' }}
+          className="text-xs font-semibold text-[var(--color-forest-ink)] mt-1"
+          style={{ fontFamily: 'var(--font-inter)' }}
         >
           Overall Rank
         </p>
       </div>
 
       {/* Subtle Horizontal Divider */}
-      <div className="w-full h-px bg-[var(--color-pencil-gray)]/30 my-1.5" />
+      <div className="w-full h-px bg-[var(--color-pencil-gray)]/50 my-1.5" />
 
       {/* Bottom: #1 Track (of 5) */}
-      <div>
+      <div className="w-full">
         <div className="flex items-baseline justify-between gap-1">
           <span
-            className="text-xl font-extrabold text-[var(--color-forest-ink)] leading-none tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)' }}
+            className="text-xl font-bold text-[var(--color-forest-ink)] leading-none"
+            style={{ fontFamily: 'var(--font-mono)' }}
           >
             #{ranks.trackRank}
           </span>
           <span
-            className="text-xs font-semibold text-[var(--color-pencil-gray)] tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)' }}
+            className="text-xs font-medium text-[var(--color-forest-ink)]/65"
+            style={{ fontFamily: 'var(--font-mono)' }}
           >
             of {ranks.trackTotal}
           </span>
         </div>
         <p
-          className="text-xs font-bold text-[var(--color-forest-ink)] mt-1 tracking-[-0.03em]"
-          style={{ fontFamily: 'var(--font-bricolage)' }}
+          className="text-xs font-semibold text-[var(--color-forest-ink)] mt-1"
+          style={{ fontFamily: 'var(--font-inter)' }}
         >
           In {user.track}
         </p>
       </div>
-    </div>
+    </button>
   );
 }

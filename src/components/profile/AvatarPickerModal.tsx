@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { AVATARS } from '../../data/avatars';
 import { compressImage } from '../../utils/image';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 import StudioAvatar from '../ui/StudioAvatar';
 
 interface Props {
@@ -27,6 +28,19 @@ export default function AvatarPickerModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setAvatarId(currentAvatarId || 'av-01');
+      setCustomAvatarUrl(currentCustomAvatarUrl || null);
+      setError('');
+    }
+  }, [open, currentAvatarId, currentCustomAvatarUrl]);
+
+  useFocusTrap(open, modalRef, () => {
+    if (!saving) onClose();
+  });
 
   if (!open) return null;
 
@@ -71,47 +85,54 @@ export default function AvatarPickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 profile-bricolage"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{
         backgroundColor: 'rgba(26, 51, 0, 0.4)',
-        fontFamily: 'var(--font-bricolage)',
-        letterSpacing: '-0.03em',
+        fontFamily: 'var(--font-inter)',
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Change team avatar"
+      onClick={() => {
+        if (!saving) onClose();
+      }}
     >
       <div
-        className="w-full max-w-sm p-5 max-h-[90vh] overflow-y-auto card-spring profile-bricolage"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="avatar-modal-title"
+        tabIndex={-1}
+        className="w-full max-w-sm p-5 max-h-[90vh] overflow-y-auto"
         style={{
           backgroundColor: 'var(--color-cream-paper)',
           border: '2px solid var(--color-forest-ink)',
-          borderRadius: 'var(--radius-cards)',
-          fontFamily: 'var(--font-bricolage)',
-          letterSpacing: '-0.03em',
+          borderRadius: 'var(--radius-nav)',
+          fontFamily: 'var(--font-inter)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--color-pencil-gray)]">
           <div>
             <h3
-              className="text-base font-bold tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              id="avatar-modal-title"
+              className="text-base font-bold"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
             >
               Update Your Avatar
             </h3>
             <p
-              className="text-xs font-semibold tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+              className="text-xs font-medium"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)', opacity: 0.65 }}
             >
               Upload a personal photo or select a team avatar
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center cursor-pointer btn-spring"
+            disabled={saving}
+            className="w-10 h-10 flex items-center justify-center cursor-pointer btn-spring"
             style={{ borderRadius: 'var(--radius-buttons)' }}
-            aria-label="Close"
+            aria-label="Close modal"
           >
             <Icon icon="doodle:close" width={18} height={18} style={{ color: 'var(--color-forest-ink)' }} />
           </button>
@@ -126,11 +147,11 @@ export default function AvatarPickerModal({
               backgroundColor: customAvatarUrl ? 'var(--color-sticky-note-mint)' : 'var(--color-cream-paper)',
             }}
           >
-            <StudioAvatar avatarId={avatarId} customAvatarUrl={customAvatarUrl} size={76} />
+            <StudioAvatar avatarId={avatarId} customAvatarUrl={customAvatarUrl} alt="Selected avatar preview" size={76} />
           </div>
           <span
-            className="text-[11px] font-bold mt-1.5 tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+            className="text-[11px] font-medium mt-1.5"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)', opacity: 0.7 }}
           >
             {customAvatarUrl ? 'Custom Photo' : `Preset: ${avatarId}`}
           </span>
@@ -159,8 +180,8 @@ export default function AvatarPickerModal({
         >
           <Icon icon="doodle:camera" width={18} height={18} style={{ color: 'var(--color-forest-ink)' }} />
           <span
-            className="text-xs font-bold tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+            className="text-xs font-semibold"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
           >
             {compressing ? 'Processing Image...' : customAvatarUrl ? 'Upload Different Photo' : 'Upload Your Photo'}
           </span>
@@ -170,8 +191,8 @@ export default function AvatarPickerModal({
         <div className="flex items-center gap-2 w-full mb-3">
           <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-pencil-gray)' }} />
           <span
-            className="text-[10px] uppercase tracking-[-0.03em] font-bold"
-            style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+            className="text-[10px] uppercase tracking-wider font-medium"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)', opacity: 0.6 }}
           >
             Or pick from team avatars
           </span>
@@ -204,8 +225,9 @@ export default function AvatarPickerModal({
 
         {error && (
           <p
-            className="text-xs mb-3 text-center font-bold tracking-[-0.03em]"
-            style={{ color: 'var(--color-terracotta)', fontFamily: 'var(--font-bricolage)' }}
+            role="alert"
+            className="text-xs mb-3 text-center font-semibold"
+            style={{ color: 'var(--color-terracotta)', fontFamily: 'var(--font-inter)' }}
           >
             {error}
           </p>
@@ -217,9 +239,9 @@ export default function AvatarPickerModal({
             type="button"
             disabled={saving || compressing}
             onClick={handleConfirm}
-            className="flex-1 py-2.5 text-xs font-bold cursor-pointer btn-spring tracking-[-0.03em]"
+            className="flex-1 py-2.5 min-h-[44px] text-xs font-semibold cursor-pointer btn-spring"
             style={{
-              fontFamily: 'var(--font-bricolage)',
+              fontFamily: 'var(--font-inter)',
               backgroundColor: 'var(--color-forest-ink)',
               color: 'var(--color-cream-paper)',
               borderRadius: 'var(--radius-buttons)',
@@ -232,9 +254,10 @@ export default function AvatarPickerModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 text-xs font-bold cursor-pointer btn-spring tracking-[-0.03em]"
+            disabled={saving}
+            className="px-4 py-2.5 min-h-[44px] text-xs font-semibold cursor-pointer btn-spring"
             style={{
-              fontFamily: 'var(--font-bricolage)',
+              fontFamily: 'var(--font-inter)',
               color: 'var(--color-forest-ink)',
               backgroundColor: 'var(--color-cream-paper)',
               border: '1px solid var(--color-pencil-gray)',

@@ -111,7 +111,16 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-    transform: none !important;
+  }
+
+  .btn-spring:hover:not(:disabled),
+  .btn-spring:active:not(:disabled),
+  .card-spring:hover,
+  .card-spring:active,
+  .pill-spring:hover,
+  .pill-spring:active {
+    transform: none;
+    box-shadow: none;
   }
 }
 
@@ -273,53 +282,11 @@ body {
 }
 
 /* ═══════════════════════════════════════════
-   Tier Progression Shimmer & Stepper Keyframes
-   ═══════════════════════════════════════════ */
-
-@keyframes progress-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--color-forest-ink) 0%,
-    rgba(40, 80, 10, 0.7) 50%,
-    var(--color-forest-ink) 100%
-  );
-  background-size: 200% 100%;
-  animation: progress-shimmer 2.5s infinite linear;
-}
-
-/* ═══════════════════════════════════════════
    Handwritten Pen Annotations (Nanum Pen Script)
    ═══════════════════════════════════════════ */
 
 .font-hand {
   font-family: var(--font-hand);
-}
-
-/* ═══════════════════════════════════════════
-   Profile Page Pure Bricolage Grotesque & Tight Letter Spacing
-   ═══════════════════════════════════════════ */
-
-.profile-bricolage {
-  font-family: var(--font-bricolage) !important;
-  letter-spacing: -0.03em !important;
-}
-
-.profile-bricolage *,
-.profile-bricolage input,
-.profile-bricolage button,
-.profile-bricolage select,
-.profile-bricolage textarea {
-  font-family: var(--font-bricolage) !important;
-  letter-spacing: -0.03em !important;
 }
 
 /* Mobile-first phone container on desktop */

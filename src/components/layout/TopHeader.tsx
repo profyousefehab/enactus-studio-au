@@ -13,35 +13,37 @@ export default function TopHeader() {
   return (
     <>
       <div className="sticky top-0 z-40 px-3 pt-3 pb-1 select-none pointer-events-auto">
-        {/* Floating Cream Paper pill header with warm yellow glow */}
+        {/* Floating Cream Paper pill header with subtle nav glow */}
         <header
-          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-[#b6b6b6] bg-[#fcfaf5] transition-all duration-200"
+          className="flex items-center justify-between px-3 py-2 rounded-2xl border border-[var(--color-pencil-gray)] bg-[var(--color-cream-paper)] transition-all duration-200"
           style={{
-            boxShadow: '0 10px 30px rgba(255, 233, 92, 0.35), 0 2px 6px rgba(0, 0, 0, 0.04)',
+            boxShadow: '0 8px 24px rgba(255, 233, 92, 0.25), var(--shadow-subtle)',
           }}
         >
-          {/* Left — Hamburger menu button */}
+          {/* Left — Hamburger menu button (44x44 touch target) */}
           <button
+            type="button"
             onClick={() => setSidebarOpen(true)}
-            className="flex items-center justify-center w-9 h-9 cursor-pointer btn-spring"
+            className="flex items-center justify-center w-11 h-11 cursor-pointer btn-spring"
             style={{ borderRadius: 'var(--radius-buttons)' }}
             aria-label="Open menu"
           >
-            <Icon icon="doodle:menu" width={22} height={22} style={{ color: '#1a3300' }} />
+            <Icon icon="doodle:menu" width={22} height={22} style={{ color: 'var(--color-forest-ink)' }} />
           </button>
 
           {/* Center — Logo + Title */}
-          <div
+          <button
+            type="button"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 cursor-pointer btn-spring"
-            role="button"
-            tabIndex={0}
+            className="flex items-center gap-2 min-h-[44px] px-2 cursor-pointer btn-spring"
+            style={{ borderRadius: 'var(--radius-buttons)' }}
             aria-label="Go to Team Wall"
           >
             {/* Custom Logo (28px x 28px object-contain) */}
             <img
               src="/ICON.png"
-              alt="Enactus AU Beta Logo"
+              alt=""
+              aria-hidden="true"
               className="w-7 h-7 shrink-0 object-contain"
               width={28}
               height={28}
@@ -56,19 +58,22 @@ export default function TopHeader() {
             >
               Enactus AU Beta
             </h1>
-          </div>
+          </button>
 
-          {/* Right — Circular Avatar */}
+          {/* Right — Circular Avatar (44x44 touch target) */}
           {user ? (
             <button
+              type="button"
               onClick={() => navigate('/profile')}
-              className="w-9 h-9 cursor-pointer flex items-center justify-center rounded-full overflow-hidden btn-spring ring-1 ring-[#b6b6b6]"
+              className="w-11 h-11 cursor-pointer flex items-center justify-center rounded-full btn-spring"
               aria-label="Go to profile"
             >
-              <StudioAvatar avatarId={user.avatarId} customAvatarUrl={user.customAvatarUrl} size={36} />
+              <span className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-[var(--color-pencil-gray)] flex items-center justify-center">
+                <StudioAvatar avatarId={user.avatarId} customAvatarUrl={user.customAvatarUrl} size={36} />
+              </span>
             </button>
           ) : (
-            <div className="w-9 h-9" />
+            <div className="w-11 h-11" />
           )}
         </header>
       </div>

@@ -10,6 +10,7 @@ import { Icon } from '@iconify/react';
 import StickerIcon from '../components/ui/StickerIcon';
 import { db } from '../lib/firebase';
 import { useSession, type User } from '../context/SessionContext';
+import { useFocusTrap } from '../utils/useFocusTrap';
 import { AVATARS } from '../data/avatars';
 import { compressImage } from '../utils/image';
 import BricolageHeadline from '../components/ui/BricolageHeadline';
@@ -40,6 +41,12 @@ export default function Onboarding() {
   const [loginName, setLoginName] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const loginModalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(showLogin, loginModalRef, () => {
+    setShowLogin(false);
+    setLoginError('');
+  });
 
   const nameValid = /^[A-Za-z\s]{2,}$/.test(name.trim());
 
@@ -61,10 +68,15 @@ export default function Onboarding() {
 
         {/* Name input */}
         <div className="w-full mb-6">
-          <label className="block text-sm font-medium mb-1.5" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
+          <label
+            htmlFor="onboarding-full-name"
+            className="block text-sm font-medium mb-1.5"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
+          >
             Full Name (English)
           </label>
           <input
+            id="onboarding-full-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -171,23 +183,45 @@ export default function Onboarding() {
   // ───── Login Modal ─────
   function renderLoginModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26, 51, 0, 0.3)' }}>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ backgroundColor: 'rgba(26, 51, 0, 0.3)' }}
+        onClick={() => {
+          setShowLogin(false);
+          setLoginError('');
+        }}
+      >
         <div
+          ref={loginModalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-modal-title"
+          tabIndex={-1}
           className="w-full max-w-sm p-6"
           style={{
             backgroundColor: 'var(--color-cream-paper)',
             border: '2px solid var(--color-forest-ink)',
             borderRadius: 'var(--radius-nav)',
           }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
+          <h2
+            id="login-modal-title"
+            className="text-xl font-bold mb-4"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
+          >
             Welcome back!
           </h2>
 
-          <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
+          <label
+            htmlFor="login-name-input"
+            className="block text-sm font-medium mb-1"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
+          >
             Your Name
           </label>
           <input
+            id="login-name-input"
             type="text"
             value={loginName}
             onChange={(e) => setLoginName(e.target.value)}
@@ -203,10 +237,15 @@ export default function Onboarding() {
             }}
           />
 
-          <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}>
+          <label
+            htmlFor="login-pin-input"
+            className="block text-sm font-medium mb-1"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
+          >
             4-Digit PIN
           </label>
           <input
+            id="login-pin-input"
             type="text"
             value={loginPin}
             onChange={(e) => setLoginPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
@@ -225,12 +264,17 @@ export default function Onboarding() {
           />
 
           {loginError && (
-            <p className="text-xs mb-3" style={{ color: 'var(--color-terracotta)', fontFamily: 'var(--font-inter)' }}>
+            <p
+              role="alert"
+              className="text-xs mb-3"
+              style={{ color: 'var(--color-terracotta)', fontFamily: 'var(--font-inter)' }}
+            >
               {loginError}
             </p>
           )}
 
           <button
+            type="button"
             disabled={loginPin.length !== 4 || loginLoading}
             onClick={async () => {
               setLoginLoading(true);
@@ -260,7 +304,7 @@ export default function Onboarding() {
                 setLoginLoading(false);
               }
             }}
-            className="w-full py-3 text-sm font-medium cursor-pointer mb-2"
+            className="w-full py-3 min-h-[44px] text-sm font-medium cursor-pointer mb-2"
             style={{
               fontFamily: 'var(--font-inter)',
               backgroundColor: 'var(--color-forest-ink)',
@@ -273,8 +317,9 @@ export default function Onboarding() {
             {loginLoading ? 'Logging in...' : 'Log In →'}
           </button>
           <button
+            type="button"
             onClick={() => { setShowLogin(false); setLoginError(''); }}
-            className="w-full py-2 text-sm cursor-pointer"
+            className="w-full py-2 min-h-[44px] text-sm cursor-pointer"
             style={{ color: 'var(--color-forest-ink)', fontFamily: 'var(--font-inter)', background: 'none', border: 'none' }}
           >
             Cancel
@@ -343,7 +388,6 @@ export default function Onboarding() {
                 className="w-20 h-20 rounded-full object-cover shrink-0 select-none"
                 style={{
                   border: '2px solid var(--color-forest-ink)',
-                  boxShadow: '0 2px 8px rgba(26, 51, 0, 0.12)',
                 }}
               />
               <div className="min-w-0">
@@ -520,7 +564,7 @@ export default function Onboarding() {
             role="alert"
             className="w-full mt-4 p-3.5 flex items-start gap-2.5 text-left"
             style={{
-              backgroundColor: '#fff1f0',
+              backgroundColor: 'rgba(203, 85, 33, 0.1)',
               border: '1px solid var(--color-terracotta)',
               borderRadius: 'var(--radius-buttons)',
             }}
@@ -654,7 +698,7 @@ export default function Onboarding() {
 
           {/* Translucent yellow Washi Tape strip on top-right corner */}
           <div
-            className="absolute -top-3.5 right-2 z-10 w-22 h-6 pointer-events-none shadow-xs -rotate-12"
+            className="absolute -top-3.5 right-2 z-10 w-22 h-6 pointer-events-none -rotate-12"
             style={{
               backgroundColor: 'rgba(255, 233, 92, 0.85)',
               border: '1px dashed rgba(26, 51, 0, 0.25)',

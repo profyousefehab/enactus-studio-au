@@ -6,6 +6,8 @@ interface Props {
   customAvatarUrl?: string | null;
   /** Size in pixels (renders as a circle) */
   size?: number;
+  /** Accessible alt text; when omitted, avatar is treated as decorative */
+  alt?: string;
   className?: string;
   style?: CSSProperties;
 }
@@ -19,9 +21,11 @@ export default function StudioAvatar({
   avatarId = 'av-01',
   customAvatarUrl,
   size = 48,
+  alt,
   className = '',
   style,
 }: Props) {
+  const isDecorative = !alt;
   // If customAvatarUrl is provided OR if avatarId is a raw image/data URL, use it
   const imageSrc =
     customAvatarUrl ||
@@ -37,8 +41,8 @@ export default function StudioAvatar({
     return (
       <img
         src={imageSrc}
-        alt="Avatar"
-        aria-hidden="true"
+        alt={alt || ''}
+        aria-hidden={isDecorative ? 'true' : undefined}
         width={size}
         height={size}
         className={`rounded-full object-cover shrink-0 block select-none ${className}`}
@@ -58,6 +62,9 @@ export default function StudioAvatar({
   if (!avatar) {
     return (
       <div
+        role={isDecorative ? undefined : 'img'}
+        aria-label={isDecorative ? undefined : alt}
+        aria-hidden={isDecorative ? 'true' : undefined}
         className={className}
         style={{
           width: size,
@@ -76,8 +83,8 @@ export default function StudioAvatar({
     <img
       className={`rounded-full object-cover shrink-0 block select-none ${className}`}
       src={avatar.dataUri}
-      alt="Preset Avatar"
-      aria-hidden="true"
+      alt={alt || ''}
+      aria-hidden={isDecorative ? 'true' : undefined}
       width={size}
       height={size}
       style={{

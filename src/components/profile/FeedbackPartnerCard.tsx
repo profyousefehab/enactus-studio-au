@@ -54,16 +54,15 @@ export default function FeedbackPartnerCard() {
 
   return (
     <div
-      className="p-5 min-h-[140px] flex flex-col justify-between card-spring rounded-2xl border border-[var(--color-forest-ink)] shadow-xs profile-bricolage relative"
+      className="p-5 min-h-[140px] flex flex-col justify-between card-spring rounded-xl border border-[var(--color-forest-ink)] relative"
       style={{
         backgroundColor: 'var(--color-sticky-note-teal)',
-        fontFamily: 'var(--font-bricolage)',
-        letterSpacing: '-0.03em',
+        fontFamily: 'var(--font-inter)',
       }}
     >
       {/* Subtle Sketchbook Accent: Translucent Yellow Washi Tape Strip */}
       <div
-        className="absolute -top-1.5 right-4 w-10 h-3 pointer-events-none -rotate-6 z-10 shadow-2xs"
+        className="absolute -top-1.5 right-4 w-10 h-3 pointer-events-none -rotate-6 z-10"
         style={{
           backgroundColor: 'rgba(255, 233, 92, 0.85)',
           border: '1px dashed rgba(26, 51, 0, 0.25)',
@@ -73,10 +72,10 @@ export default function FeedbackPartnerCard() {
 
       {/* Small Eyebrow */}
       <span
-        className="text-[11px] font-bold uppercase tracking-[-0.03em] text-[var(--color-forest-ink)]/75"
-        style={{ fontFamily: 'var(--font-bricolage)' }}
+        className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-forest-ink)]/75"
+        style={{ fontFamily: 'var(--font-mono)' }}
       >
-        PARTNER
+        FEEDBACK PARTNER
       </span>
 
       {loading ? (
@@ -86,12 +85,13 @@ export default function FeedbackPartnerCard() {
           <StudioAvatar
             avatarId={partner.avatarId}
             customAvatarUrl={partner.customAvatarUrl}
+            alt={partner.name}
             size={44}
           />
           <div className="min-w-0 flex-1">
             <p
-              className="text-sm font-bold truncate leading-tight text-[var(--color-forest-ink)] tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
+              className="text-sm font-bold truncate leading-tight text-[var(--color-forest-ink)]"
+              style={{ fontFamily: 'var(--font-inter)' }}
             >
               {partner.name}
             </p>
@@ -103,8 +103,8 @@ export default function FeedbackPartnerCard() {
       ) : (
         <div className="my-auto">
           <p
-            className="text-xs font-semibold italic text-[var(--color-forest-ink)]/75 tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)' }}
+            className="text-xs font-medium italic text-[var(--color-forest-ink)]/80"
+            style={{ fontFamily: 'var(--font-inter)' }}
           >
             Pairing coming soon!
           </p>

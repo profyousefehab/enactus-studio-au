@@ -21,7 +21,6 @@ import PointsHistoryModal from '../components/profile/PointsHistoryModal';
 
 /**
  * Coordinator Profile View (Admin only)
- * Pure Bricolage Grotesque typography with decreased letter spacing.
  */
 function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>['user'] }) {
   const navigate = useNavigate();
@@ -63,10 +62,7 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
   }
 
   return (
-    <div
-      className="flex flex-col gap-3 profile-bricolage"
-      style={{ fontFamily: 'var(--font-bricolage)', letterSpacing: '-0.03em' }}
-    >
+    <div className="flex flex-col gap-3" style={{ fontFamily: 'var(--font-inter)' }}>
       {/* Coordinator Identity Card */}
       <div
         className="p-4 flex items-center gap-4 card-spring"
@@ -87,13 +83,14 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
           <StudioAvatar
             avatarId={user.avatarId}
             customAvatarUrl={user.customAvatarUrl}
+            alt={user.name}
             size={68}
           />
           <div
-            className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center shadow-sm"
+            className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: 'var(--color-highlighter-yellow)',
-              border: '1.5px solid var(--color-forest-ink)',
+              border: '1px solid var(--color-forest-ink)',
             }}
           >
             <Icon icon="doodle:camera" width={13} height={13} style={{ color: 'var(--color-forest-ink)' }} />
@@ -104,9 +101,9 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span
-                className="text-[11px] font-bold px-2.5 py-0.5 tracking-[-0.03em] uppercase"
+                className="text-[11px] font-bold px-2.5 py-0.5 uppercase"
                 style={{
-                  fontFamily: 'var(--font-bricolage)',
+                  fontFamily: 'var(--font-inter)',
                   color: 'var(--color-cream-paper)',
                   backgroundColor: 'var(--color-forest-ink)',
                   borderRadius: 'var(--radius-buttons)',
@@ -117,26 +114,27 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
               <TrackBadge track={user.track} size="sm" />
             </div>
             <button
+              type="button"
               onClick={() => setModalOpen(true)}
-              className="text-[11px] font-bold underline cursor-pointer tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+              className="text-[11px] font-semibold underline cursor-pointer"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)', opacity: 0.7 }}
             >
               Edit photo
             </button>
           </div>
 
           <h2
-            className="text-xl font-extrabold truncate leading-tight tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+            className="text-xl font-bold truncate leading-tight"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
           >
             {user.name}
           </h2>
 
           <div className="mt-1.5 flex items-center gap-2">
             <span
-              className="text-xs font-bold px-2 py-0.5 tracking-[-0.03em]"
+              className="text-xs font-medium px-2 py-0.5"
               style={{
-                fontFamily: 'var(--font-bricolage)',
+                fontFamily: 'var(--font-mono)',
                 color: 'var(--color-forest-ink)',
                 backgroundColor: 'var(--color-highlighter-yellow)',
                 borderRadius: 'var(--radius-buttons)',
@@ -145,8 +143,8 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
               Member ID #{user.pinCode}
             </span>
             <span
-              className="text-xs font-semibold tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+              className="text-xs font-medium"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)', opacity: 0.65 }}
             >
               Track Lead
             </span>
@@ -167,21 +165,21 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
         className="p-4 sm:p-5 card-spring flex flex-col gap-4"
         style={{
           backgroundColor: 'var(--color-cream-paper)',
-          border: '1.5px solid var(--color-forest-ink)',
+          border: '1px solid var(--color-forest-ink)',
           borderRadius: 'var(--radius-cards)',
         }}
       >
         <div className="flex items-center justify-between pb-3 border-b border-[var(--color-pencil-gray)]">
           <div>
             <span
-              className="text-[11px] font-bold uppercase tracking-[-0.03em] block"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-[11px] font-medium uppercase tracking-wider block"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)', opacity: 0.75 }}
             >
               Team Oversight
             </span>
             <h3
-              className="text-base font-extrabold mt-0.5 tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-base font-bold mt-0.5"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
             >
               Committee Track Roster
             </h3>
@@ -208,14 +206,14 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
             }}
           >
             <p
-              className="text-2xl font-extrabold leading-tight tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-2xl font-bold leading-tight"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}
             >
               {loading ? '...' : memberStats.total}
             </p>
             <p
-              className="text-xs font-bold mt-0.5 tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+              className="text-xs font-medium mt-0.5"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)', opacity: 0.7 }}
             >
               Total Members
             </p>
@@ -230,14 +228,14 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
             }}
           >
             <p
-              className="text-2xl font-extrabold leading-tight tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-2xl font-bold leading-tight"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}
             >
               {loading ? '...' : memberStats.design}
             </p>
             <p
-              className="text-xs font-bold mt-0.5 tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-xs font-medium mt-0.5"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
             >
               Design Track
             </p>
@@ -252,14 +250,14 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
             }}
           >
             <p
-              className="text-2xl font-extrabold leading-tight tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-2xl font-bold leading-tight"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest-ink)' }}
             >
               {loading ? '...' : memberStats.content}
             </p>
             <p
-              className="text-xs font-bold mt-0.5 tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-forest-ink)' }}
+              className="text-xs font-medium mt-0.5"
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
             >
               Content Track
             </p>
@@ -267,18 +265,19 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
         </div>
 
         <p
-          className="text-xs font-semibold leading-relaxed tracking-[-0.03em]"
-          style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--color-pencil-gray)' }}
+          className="text-xs font-normal leading-relaxed"
+          style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)', opacity: 0.75 }}
         >
           Track members are active on the team. Log attendance, publish announcements, assign peer review pairs, and award points from the admin dashboard.
         </p>
 
         {/* Primary CTA Button */}
         <button
+          type="button"
           onClick={() => navigate('/admin')}
-          className="w-full py-3.5 px-4 flex items-center justify-center gap-2.5 text-sm font-extrabold cursor-pointer btn-spring tracking-[-0.03em]"
+          className="w-full py-3.5 px-4 flex items-center justify-center gap-2.5 text-sm font-semibold cursor-pointer btn-spring"
           style={{
-            fontFamily: 'var(--font-bricolage)',
+            fontFamily: 'var(--font-inter)',
             backgroundColor: 'var(--color-forest-ink)',
             color: 'var(--color-cream-paper)',
             borderRadius: 'var(--radius-buttons)',
@@ -286,16 +285,17 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
           }}
         >
           <span>Open Coordinator Dashboard</span>
-          <span className="text-base font-extrabold">→</span>
+          <span className="text-base font-bold">→</span>
         </button>
 
         {/* Secondary Navigation Links */}
         <div className="flex gap-2 pt-1">
           <button
+            type="button"
             onClick={() => navigate('/guidelines')}
-            className="flex-1 py-2 text-xs font-bold cursor-pointer btn-spring text-center tracking-[-0.03em]"
+            className="flex-1 py-2 min-h-[40px] text-xs font-semibold cursor-pointer btn-spring text-center"
             style={{
-              fontFamily: 'var(--font-bricolage)',
+              fontFamily: 'var(--font-inter)',
               color: 'var(--color-forest-ink)',
               backgroundColor: 'transparent',
               border: '1px solid var(--color-pencil-gray)',
@@ -305,10 +305,11 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
             Edit Guidelines →
           </button>
           <button
+            type="button"
             onClick={() => navigate('/leaderboard')}
-            className="flex-1 py-2 text-xs font-bold cursor-pointer btn-spring text-center tracking-[-0.03em]"
+            className="flex-1 py-2 min-h-[40px] text-xs font-semibold cursor-pointer btn-spring text-center"
             style={{
-              fontFamily: 'var(--font-bricolage)',
+              fontFamily: 'var(--font-inter)',
               color: 'var(--color-forest-ink)',
               backgroundColor: 'transparent',
               border: '1px solid var(--color-pencil-gray)',
@@ -326,7 +327,6 @@ function CoordinatorProfileView({ user }: { user: ReturnType<typeof useSession>[
 /**
  * Member Profile View (Standard members only)
  * Clean, breathable Asymmetric Bento Grid layout (grid-cols-2 gap-3.5).
- * Pure Bricolage Grotesque typography with decreased letter spacing.
  */
 function MemberProfileView() {
   const { user } = useSession();
@@ -337,10 +337,7 @@ function MemberProfileView() {
   if (!user) return null;
 
   return (
-    <div
-      className="flex flex-col gap-3.5 profile-bricolage"
-      style={{ fontFamily: 'var(--font-bricolage)', letterSpacing: '-0.03em' }}
-    >
+    <div className="flex flex-col gap-3.5" style={{ fontFamily: 'var(--font-inter)' }}>
       {/* Row 1 — Full Width Identity Card (Clean & Airy) */}
       <IdentityCard />
 
@@ -360,25 +357,24 @@ function MemberProfileView() {
       <button
         type="button"
         onClick={() => setPointsModalOpen(true)}
-        className="w-full py-3.5 px-5 flex items-center justify-between rounded-xl border border-[var(--color-forest-ink)] cursor-pointer btn-spring shadow-xs group transition-all hover:bg-[var(--color-sticky-note-mint)] profile-bricolage"
+        className="w-full py-3.5 px-5 flex items-center justify-between rounded-xl border border-[var(--color-forest-ink)] cursor-pointer btn-spring group transition-all hover:bg-[var(--color-sticky-note-mint)]"
         style={{
           backgroundColor: 'var(--color-cream-paper)',
-          fontFamily: 'var(--font-bricolage)',
-          letterSpacing: '-0.03em',
+          fontFamily: 'var(--font-inter)',
         }}
         title="View Points History"
       >
         <div className="flex items-center gap-2.5">
           <StickerIcon name="bar-chart" size={18} />
           <span
-            className="text-sm font-bold text-[var(--color-forest-ink)] tracking-[-0.03em]"
-            style={{ fontFamily: 'var(--font-bricolage)' }}
+            className="text-sm font-semibold text-[var(--color-forest-ink)]"
+            style={{ fontFamily: 'var(--font-inter)' }}
           >
             Points History
           </span>
         </div>
 
-        <span className="text-base font-extrabold text-[var(--color-forest-ink)] group-hover:translate-x-1 transition-transform">
+        <span className="text-base font-bold text-[var(--color-forest-ink)] group-hover:translate-x-1 transition-transform">
           →
         </span>
       </button>
@@ -408,7 +404,6 @@ function MemberProfileView() {
 
 /**
  * My Profile — Clean separation between Member and Coordinator experiences.
- * Styled exclusively with Bricolage Grotesque and decreased letter spacing.
  */
 export default function Profile() {
   const { user } = useSession();
@@ -416,12 +411,12 @@ export default function Profile() {
 
   return (
     <div
-      className="p-4 sm:p-5 max-w-lg mx-auto flex flex-col gap-3.5 profile-bricolage"
-      style={{ fontFamily: 'var(--font-bricolage)', letterSpacing: '-0.03em' }}
+      className="p-4 sm:p-5 max-w-lg mx-auto flex flex-col gap-3.5"
+      style={{ fontFamily: 'var(--font-inter)' }}
     >
       <BricolageHeadline
         highlight={isAdmin ? ['Coordinator'] : ['Profile']}
-        className="text-3xl mb-0.5 tracking-[-0.03em]"
+        className="text-3xl mb-0.5"
       >
         {isAdmin ? 'Coordinator Profile' : 'My Profile'}
       </BricolageHeadline>

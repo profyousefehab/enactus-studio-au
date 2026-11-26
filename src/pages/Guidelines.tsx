@@ -210,6 +210,7 @@ export default function Guidelines() {
   const [editing, setEditing] = useState(false);
   const [editSections, setEditSections] = useState<GuidelineSection[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Load from Firestore with real-time listener
   useEffect(() => {
@@ -235,16 +236,19 @@ export default function Guidelines() {
 
   function startEditing() {
     setEditSections(sections.map((s) => ({ ...s })));
+    setSaveError(null);
     setEditing(true);
   }
 
   function cancelEditing() {
     setEditing(false);
+    setSaveError(null);
     setEditSections([]);
   }
 
   async function saveEdits() {
     setSaving(true);
+    setSaveError(null);
     try {
       await setDoc(doc(db, ...FIRESTORE_DOC.split('/') as [string, string]), {
         sections: editSections,
@@ -253,7 +257,7 @@ export default function Guidelines() {
       setEditing(false);
     } catch (err) {
       console.error('Failed to save guidelines:', err);
-      alert(`Save failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes.');
     } finally {
       setSaving(false);
     }
@@ -306,48 +310,67 @@ export default function Guidelines() {
 
       {/* Admin edit action bar */}
       {editing && (
-        <div
-          className="p-3 flex items-center justify-between gap-2 rounded-[10px] border border-[var(--color-forest-ink)]"
-          style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
-        >
-          <div className="flex items-center gap-2">
-            <StickerIcon name="fluent-emoji-flat:wrench" size={18} />
-            <span
-              className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]"
-              style={{ fontFamily: 'var(--font-mono)' }}
-            >
-              Admin Edit Mode
-            </span>
+        <div className="flex flex-col gap-2">
+          <div
+            className="p-3 flex items-center justify-between gap-2 rounded-[10px] border border-[var(--color-forest-ink)]"
+            style={{ backgroundColor: 'var(--color-highlighter-yellow)' }}
+          >
+            <div className="flex items-center gap-2">
+              <StickerIcon name="fluent-emoji-flat:wrench" size={18} />
+              <span
+                className="text-xs font-bold uppercase tracking-wider font-mono text-[var(--color-forest-ink)]"
+                style={{ fontFamily: 'var(--font-mono)' }}
+              >
+                Admin Edit Mode
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={cancelEditing}
+                disabled={saving}
+                className="px-3 py-1.5 text-xs font-semibold cursor-pointer rounded-[6px]"
+                style={{
+                  fontFamily: 'var(--font-inter)',
+                  color: 'var(--color-forest-ink)',
+                  backgroundColor: 'var(--color-cream-paper)',
+                  border: '1px solid var(--color-forest-ink)',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveEdits}
+                disabled={saving}
+                className="btn-spring px-4 py-1.5 text-xs font-semibold cursor-pointer rounded-[6px]"
+                style={{
+                  fontFamily: 'var(--font-inter)',
+                  backgroundColor: 'var(--color-forest-ink)',
+                  color: 'var(--color-cream-paper)',
+                  border: 'none',
+                  opacity: saving ? 0.6 : 1,
+                }}
+              >
+                {saving ? 'Saving...' : 'Save Changes →'}
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={cancelEditing}
-              disabled={saving}
-              className="px-3 py-1.5 text-xs font-semibold cursor-pointer rounded-[6px]"
+
+          {saveError && (
+            <p
+              role="alert"
+              className="text-xs font-semibold px-3 py-2"
               style={{
-                fontFamily: 'var(--font-inter)',
-                color: 'var(--color-forest-ink)',
-                backgroundColor: 'var(--color-cream-paper)',
-                border: '1px solid var(--color-forest-ink)',
+                color: 'var(--color-terracotta)',
+                backgroundColor: 'rgba(203, 85, 33, 0.1)',
+                border: '1px solid var(--color-terracotta)',
+                borderRadius: 'var(--radius-buttons)',
               }}
             >
-              Cancel
-            </button>
-            <button
-              onClick={saveEdits}
-              disabled={saving}
-              className="btn-spring px-4 py-1.5 text-xs font-semibold cursor-pointer rounded-[6px]"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                backgroundColor: 'var(--color-forest-ink)',
-                color: 'var(--color-cream-paper)',
-                border: 'none',
-                opacity: saving ? 0.6 : 1,
-              }}
-            >
-              {saving ? 'Saving...' : 'Save Changes →'}
-            </button>
-          </div>
+              Save failed: {saveError}
+            </p>
+          )}
         </div>
       )}
 

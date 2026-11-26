@@ -35,7 +35,6 @@ export default function LeaderboardRow({
         backgroundColor: isCurrentUser ? 'rgba(168, 229, 229, 0.22)' : 'var(--color-cream-paper)',
         border: isCurrentUser ? '2px solid var(--color-forest-ink)' : '1px solid var(--color-pencil-gray)',
         borderRadius: 'var(--radius-cards)',
-        boxShadow: isCurrentUser ? '0 2px 8px rgba(26, 51, 0, 0.08)' : undefined,
       }}
     >
       {/* Rank Badge beside user photo */}
@@ -44,9 +43,9 @@ export default function LeaderboardRow({
           className="text-xs font-bold px-2 py-1 rounded-md min-w-[38px] text-center inline-block tracking-tight"
           style={{
             fontFamily: 'var(--font-mono)',
-            color: '#1a3300',
+            color: 'var(--color-forest-ink)',
             backgroundColor: isCurrentUser ? 'rgba(26, 51, 0, 0.12)' : 'rgba(26, 51, 0, 0.06)',
-            border: '1.5px solid rgba(26, 51, 0, 0.25)',
+            border: '1px solid rgba(26, 51, 0, 0.25)',
           }}
         >
           {formattedRank}
@@ -58,7 +57,7 @@ export default function LeaderboardRow({
         avatarId={avatarId}
         customAvatarUrl={customAvatarUrl}
         size={38}
-        className={isCurrentUser ? 'ring-2 ring-forest-ink ring-offset-1' : ''}
+        className={isCurrentUser ? 'ring-2 ring-[var(--color-forest-ink)] ring-offset-1' : ''}
       />
 
       {/* Name + Track */}

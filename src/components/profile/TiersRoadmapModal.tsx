@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import StickerIcon from '../ui/StickerIcon';
 import AnimatedCounter from '../ui/AnimatedCounter';
 import { TIERS, getTier, getNextTier, getTierProgress } from '../../utils/tiers';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 
 interface Props {
   open: boolean;
@@ -43,6 +44,7 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
   const currentTierIndex = TIERS.findIndex((t) => t.name === currentTier.name);
 
   const [selectedTierIndex, setSelectedTierIndex] = useState(currentTierIndex);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Sync selected tier with current tier when modal opens
   useEffect(() => {
@@ -51,15 +53,7 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
     }
   }, [open, currentTierIndex]);
 
-  // Handle escape key
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  useFocusTrap(open, modalRef, onClose);
 
   if (!open) return null;
 
@@ -74,33 +68,33 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 select-none profile-bricolage overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 select-none overflow-y-auto"
       style={{
         backgroundColor: 'rgba(26, 51, 0, 0.5)',
         backdropFilter: 'blur(4px)',
-        fontFamily: 'var(--font-bricolage)',
-        letterSpacing: '-0.03em',
+        fontFamily: 'var(--font-inter)',
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="tiers-modal-title"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[420px] rounded-2xl bg-[#fcfaf5] border-2 border-[#1a3300] p-4 sm:p-5 z-50 relative flex flex-col gap-3.5 shadow-2xl animate-in zoom-in-95 duration-200 my-auto"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tiers-modal-title"
+        tabIndex={-1}
+        className="w-full max-w-[420px] rounded-2xl bg-[var(--color-cream-paper)] border-2 border-[var(--color-forest-ink)] p-4 sm:p-5 z-50 relative flex flex-col gap-3.5 my-auto"
         style={{
-          fontFamily: 'var(--font-bricolage)',
-          letterSpacing: '-0.03em',
+          fontFamily: 'var(--font-inter)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Row with Title & Close ✕ */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#1a3300]/15">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--color-forest-ink)]/15">
           <div className="flex items-center gap-2">
             <h3
               id="tiers-modal-title"
-              className="text-lg font-extrabold text-[#1a3300] tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
+              className="text-lg font-bold text-[var(--color-forest-ink)]"
+              style={{ fontFamily: 'var(--font-inter)' }}
             >
               Tiers Roadmap
             </h3>
@@ -119,7 +113,7 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#1a3300]/10 text-[#1a3300] cursor-pointer transition-colors btn-spring"
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--color-forest-ink)]/10 text-[var(--color-forest-ink)] cursor-pointer transition-colors btn-spring"
             aria-label="Close modal"
           >
             <Icon icon="doodle:close" width={16} height={16} />
@@ -127,16 +121,16 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════
-            INTERACTIVE STEPPER RAIL (PaceUI Stepper Pattern)
+            INTERACTIVE STEPPER RAIL
            ════════════════════════════════════════════════════════════════ */}
         <div className="py-2 px-1">
           <div className="relative flex items-center justify-between">
             {/* Background connecting track */}
-            <div className="absolute top-1/2 left-3 right-3 -translate-y-1/2 h-1 bg-[#1a3300]/15 rounded-full -z-0" />
+            <div className="absolute top-1/2 left-3 right-3 -translate-y-1/2 h-1 bg-[var(--color-forest-ink)]/15 rounded-full -z-0" />
 
             {/* Filled completed connecting track */}
             <div
-              className="absolute top-1/2 left-3 -translate-y-1/2 h-1 bg-[#1a3300] rounded-full transition-all duration-500 ease-out -z-0"
+              className="absolute top-1/2 left-3 -translate-y-1/2 h-1 bg-[var(--color-forest-ink)] rounded-full transition-all duration-500 ease-out -z-0"
               style={{
                 width: `${(currentTierIndex / (TIERS.length - 1)) * 92}%`,
               }}
@@ -153,18 +147,18 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
                   key={t.name}
                   type="button"
                   onClick={() => setSelectedTierIndex(idx)}
-                  className={`relative z-10 flex flex-col items-center gap-1 cursor-pointer group focus:outline-none`}
+                  className="relative z-10 flex flex-col items-center gap-1 cursor-pointer group"
                   title={`${t.name} (${t.minPoints}+ pts)`}
                 >
                   {/* Circular Node */}
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${
                       isCurrent
-                        ? 'bg-[#ffe95c] border-[#1a3300] ring-3 ring-[#1a3300]/20 scale-110 shadow-xs'
+                        ? 'bg-[var(--color-highlighter-yellow)] border-[var(--color-forest-ink)] ring-3 ring-[var(--color-forest-ink)]/20 scale-110'
                         : isCompleted
-                        ? 'bg-[#d5f5c2] border-[#1a3300]'
-                        : 'bg-[#fcfaf5] border-[#1a3300]/30 opacity-70'
-                    } ${isSelected ? 'ring-2 ring-forest-ink ring-offset-1' : ''}`}
+                        ? 'bg-[var(--color-sticky-note-mint)] border-[var(--color-forest-ink)]'
+                        : 'bg-[var(--color-cream-paper)] border-[var(--color-forest-ink)]/30 opacity-70'
+                    } ${isSelected ? 'ring-2 ring-[var(--color-forest-ink)] ring-offset-1' : ''}`}
                   >
                     <StickerIcon name={t.icon} size={18} />
                   </div>
@@ -172,7 +166,7 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
                   {/* You badge for active tier */}
                   {isCurrent && (
                     <span
-                      className="absolute -top-3 text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-forest-ink text-cream-paper shadow-2xs leading-none"
+                      className="absolute -top-3 text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-[var(--color-forest-ink)] text-[var(--color-cream-paper)] leading-none"
                     >
                       You
                     </span>
@@ -180,8 +174,8 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
 
                   {/* Node label */}
                   <span
-                    className={`text-[10px] font-bold tracking-tight ${
-                      isSelected || isCurrent ? 'text-forest-ink font-extrabold' : 'text-forest-ink/60'
+                    className={`text-[10px] font-mono font-bold tracking-tight ${
+                      isSelected || isCurrent ? 'text-[var(--color-forest-ink)] font-extrabold' : 'text-[var(--color-forest-ink)]/60'
                     }`}
                   >
                     {t.minPoints}
@@ -196,35 +190,35 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
             ACTIVE TIER PROGRESSION BANNER
            ════════════════════════════════════════════════════════════════ */}
         <div
-          className="p-3.5 rounded-xl border border-[#1a3300] flex flex-col gap-2 relative overflow-hidden"
+          className="p-3.5 rounded-xl border border-[var(--color-forest-ink)] flex flex-col gap-2 relative overflow-hidden"
           style={{
             backgroundColor: 'var(--color-sticky-note-mint)',
           }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-forest-ink uppercase tracking-wider">
+              <span className="text-xs font-bold text-[var(--color-forest-ink)] uppercase tracking-wider">
                 Current Level
               </span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#fcfaf5] border border-forest-ink/20">
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[var(--color-cream-paper)] border border-[var(--color-forest-ink)]/20">
                 <AnimatedCounter value={points} suffix=" pts" />
               </span>
             </div>
 
-            <span className="text-xs font-semibold text-forest-ink/80">
+            <span className="text-xs font-semibold text-[var(--color-forest-ink)]/80">
               {nextTier ? `${nextTier.minPoints - points} pts to ${nextTier.name}` : 'Max Rank Reached!'}
             </span>
           </div>
 
-          {/* Smooth Spring Progress Bar */}
-          <div className="w-full bg-[#fcfaf5] h-3 rounded-full border border-[#1a3300] overflow-hidden p-0.5">
+          {/* Smooth Progress Bar */}
+          <div className="w-full bg-[var(--color-cream-paper)] h-3 rounded-full border border-[var(--color-forest-ink)] overflow-hidden p-0.5">
             <div
-              className="h-full bg-[#1a3300] rounded-full transition-all duration-700 ease-out animate-shimmer"
+              className="h-full bg-[var(--color-forest-ink)] rounded-full transition-all duration-700 ease-out"
               style={{ width: `${Math.max(6, progress)}%` }}
             />
           </div>
 
-          <div className="flex justify-between items-center text-[11px] font-semibold text-forest-ink/75">
+          <div className="flex justify-between items-center text-[11px] font-semibold text-[var(--color-forest-ink)]/75">
             <span>{currentTier.name} ({currentTier.minPoints} pts)</span>
             <span>{nextTier ? `${nextTier.name} (${nextTier.minPoints} pts)` : 'Mythic (500+)'}</span>
           </div>
@@ -234,21 +228,21 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
             FOCUSED TIER DETAIL CARD
            ════════════════════════════════════════════════════════════════ */}
         <div
-          className="p-3.5 rounded-xl border-2 border-forest-ink flex flex-col gap-2 transition-all duration-200"
+          className="p-3.5 rounded-xl border-2 border-[var(--color-forest-ink)] flex flex-col gap-2 transition-all duration-200"
           style={{
             backgroundColor: focusedTier.color,
           }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-[#fcfaf5] border border-forest-ink flex items-center justify-center shadow-xs">
+              <div className="w-9 h-9 rounded-full bg-[var(--color-cream-paper)] border border-[var(--color-forest-ink)] flex items-center justify-center">
                 <StickerIcon name={focusedTier.icon} size={22} />
               </div>
               <div>
-                <h4 className="text-base font-extrabold text-forest-ink leading-tight">
+                <h4 className="text-base font-bold text-[var(--color-forest-ink)] leading-tight">
                   {focusedTier.name}
                 </h4>
-                <p className="text-[11px] font-mono text-forest-ink/75">
+                <p className="text-[11px] font-mono text-[var(--color-forest-ink)]/75">
                   {focusedTier.minPoints}
                   {focusedTier.maxPoints !== null ? ` – ${focusedTier.maxPoints} pts` : '+ pts'}
                 </p>
@@ -257,12 +251,12 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
 
             {/* Status Badge */}
             <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-full border border-forest-ink shadow-2xs ${
+              className={`text-xs font-bold px-2 py-0.5 rounded-full border border-[var(--color-forest-ink)] ${
                 isFocusedCurrent
-                  ? 'bg-[#ffe95c] text-forest-ink'
+                  ? 'bg-[var(--color-highlighter-yellow)] text-[var(--color-forest-ink)]'
                   : isFocusedUnlocked
-                  ? 'bg-forest-ink text-cream-paper'
-                  : 'bg-[#fcfaf5] text-forest-ink/60 border-forest-ink/30'
+                  ? 'bg-[var(--color-forest-ink)] text-[var(--color-cream-paper)]'
+                  : 'bg-[var(--color-cream-paper)] text-[var(--color-forest-ink)]/60 border-[var(--color-forest-ink)]/30'
               }`}
             >
               {isFocusedCurrent ? '⭐ Active Tier' : isFocusedUnlocked ? '✓ Unlocked' : '🔒 Locked'}
@@ -270,11 +264,11 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
           </div>
 
           {/* Flavor Text & Perks */}
-          <p className="text-xs text-forest-ink/90 leading-relaxed mt-0.5">
+          <p className="text-xs text-[var(--color-forest-ink)]/90 leading-relaxed mt-0.5">
             {TIER_DESCRIPTIONS[focusedTier.name]?.desc}
           </p>
 
-          <div className="pt-2 border-t border-forest-ink/20 flex items-center gap-1.5 text-[11px] font-semibold text-forest-ink">
+          <div className="pt-2 border-t border-[var(--color-forest-ink)]/20 flex items-center gap-1.5 text-[11px] font-semibold text-[var(--color-forest-ink)]">
             <Icon icon="doodle:award" width={14} height={14} className="shrink-0" />
             <span className="truncate">{TIER_DESCRIPTIONS[focusedTier.name]?.perks}</span>
           </div>
@@ -283,45 +277,46 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
         {/* ════════════════════════════════════════════════════════════════
             ALL TIERS QUICK LADDER (COMPACT LIST)
            ════════════════════════════════════════════════════════════════ */}
-        <div className="divide-y divide-[#1a3300]/10 border border-[#1a3300]/20 rounded-xl bg-white overflow-hidden max-h-40 overflow-y-auto">
+        <div className="divide-y divide-[var(--color-forest-ink)]/10 border border-[var(--color-forest-ink)]/20 rounded-xl bg-[var(--color-cream-paper)] overflow-hidden max-h-40 overflow-y-auto">
           {TIERS.map((t, idx) => {
             const isCurrent = t.name === currentTier.name;
             const isUnlocked = points >= t.minPoints;
             const isSelected = idx === selectedTierIndex;
 
             return (
-              <div
+              <button
                 key={t.name}
+                type="button"
                 onClick={() => setSelectedTierIndex(idx)}
-                className={`px-3 py-2 flex items-center justify-between text-xs cursor-pointer transition-colors ${
+                className={`w-full text-left px-3 py-2 flex items-center justify-between text-xs cursor-pointer transition-colors ${
                   isSelected
-                    ? 'bg-[#ffe95c]/30 font-bold'
+                    ? 'bg-[var(--color-highlighter-yellow)]/30 font-bold'
                     : isCurrent
-                    ? 'bg-[#ffe95c]/15'
-                    : 'hover:bg-[#1a3300]/5'
+                    ? 'bg-[var(--color-highlighter-yellow)]/15'
+                    : 'hover:bg-[var(--color-forest-ink)]/5'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <StickerIcon name={t.icon} size={18} />
-                  <span className={`text-forest-ink ${isCurrent ? 'font-extrabold' : 'font-medium'}`}>
+                  <span className={`text-[var(--color-forest-ink)] ${isCurrent ? 'font-bold' : 'font-medium'}`}>
                     {t.name}
                   </span>
-                  <span className="text-[11px] font-mono text-pencil-gray">
+                  <span className="text-[11px] font-mono text-[var(--color-forest-ink)]/60">
                     ({t.minPoints}+)
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   {isCurrent && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#ffe95c] text-forest-ink border border-forest-ink/30">
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[var(--color-highlighter-yellow)] text-[var(--color-forest-ink)] border border-[var(--color-forest-ink)]/30">
                       You
                     </span>
                   )}
-                  <span className="text-[11px] text-forest-ink/60">
+                  <span className="text-[11px] text-[var(--color-forest-ink)]/60">
                     {isUnlocked ? '✓' : '🔒'}
                   </span>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -330,7 +325,7 @@ export default function TiersRoadmapModal({ open, onClose, points }: Props) {
         <button
           type="button"
           onClick={handleGoToGuidelines}
-          className="w-full py-2.5 px-3 text-xs font-bold rounded-lg border border-forest-ink bg-[#fcfaf5] hover:bg-[#ffe95c] text-forest-ink cursor-pointer btn-spring flex items-center justify-center gap-1.5 shadow-2xs mt-1"
+          className="w-full py-2.5 px-3 min-h-[44px] text-xs font-semibold rounded-md border border-[var(--color-forest-ink)] bg-[var(--color-cream-paper)] hover:bg-[var(--color-highlighter-yellow)] text-[var(--color-forest-ink)] cursor-pointer btn-spring flex items-center justify-center gap-1.5 mt-1"
         >
           <Icon icon="doodle:book-open" width={16} height={16} />
           <span>How to Earn Points in Guidelines →</span>

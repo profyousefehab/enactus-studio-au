@@ -8,13 +8,13 @@ interface Props {
 
 const COLOR_MAP = {
   yellow: {
-    bg: '#ffe95c',
+    bg: 'var(--color-highlighter-yellow)',
     text: 'var(--color-forest-ink)',
     accent: '#ffd93b',
   },
   terracotta: {
-    bg: '#cb5521',
-    text: '#fcfaf5',
+    bg: 'var(--color-terracotta)',
+    text: 'var(--color-cream-paper)',
     accent: '#b84617',
   },
   mint: {

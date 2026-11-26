@@ -16,6 +16,7 @@ import { db } from '../../lib/firebase';
 import { useSession } from '../../context/SessionContext';
 import StudioAvatar from '../ui/StudioAvatar';
 import TrackBadge from '../ui/TrackBadge';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import { formatRelativeTime } from '../../utils/time';
 
 interface Comment {
@@ -40,6 +41,9 @@ export default function CommentThread({ postId, commentCount }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState('');
   const [posting, setPosting] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Real-time listener on comments subcollection
   useEffect(() => {
@@ -84,16 +88,21 @@ export default function CommentThread({ postId, commentCount }: Props) {
     }
   }
 
-  async function handleDeleteComment(commentId: string) {
-    if (!window.confirm("Delete this comment?")) return;
+  async function confirmDeleteComment() {
+    if (!pendingDeleteId) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteDoc(doc(db, 'wallPosts', postId, 'comments', commentId));
+      await deleteDoc(doc(db, 'wallPosts', postId, 'comments', pendingDeleteId));
       await updateDoc(doc(db, 'wallPosts', postId), {
         commentCount: increment(-1),
       });
+      setPendingDeleteId(null);
     } catch (err) {
       console.error('Failed to delete comment:', err);
-      alert('Failed to delete comment.');
+      setDeleteError('Failed to delete comment. Please try again.');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -101,11 +110,14 @@ export default function CommentThread({ postId, commentCount }: Props) {
     <div style={{ borderTop: '1px solid var(--color-pencil-gray)' }} className="mt-3 pt-2">
       {/* Toggle button */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         className="inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer"
         style={{
           fontFamily: 'var(--font-inter)',
-          color: 'var(--color-pencil-gray)',
+          color: 'var(--color-forest-ink)',
+          opacity: 0.75,
           background: 'none',
           border: 'none',
           padding: 0,
@@ -181,8 +193,12 @@ export default function CommentThread({ postId, commentCount }: Props) {
 
                   {canDeleteComment && (
                     <button
-                      onClick={() => handleDeleteComment(c.id)}
-                      className="p-1 rounded cursor-pointer transition-colors text-[var(--color-pencil-gray)] hover:text-[#cb5521] hover:bg-black/5 shrink-0"
+                      type="button"
+                      onClick={() => {
+                        setDeleteError(null);
+                        setPendingDeleteId(c.id);
+                      }}
+                      className="p-1.5 rounded cursor-pointer transition-colors text-[var(--color-pencil-gray)] hover:text-[var(--color-terracotta)] hover:bg-black/5 shrink-0"
                       title="Delete comment"
                       aria-label="Delete comment"
                     >
@@ -204,6 +220,7 @@ export default function CommentThread({ postId, commentCount }: Props) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
               placeholder="Write a comment..."
+              aria-label="Write a comment"
               className="flex-1 text-xs px-3 py-1.5 focus:outline-none"
               style={{
                 fontFamily: 'var(--font-inter)',
@@ -214,6 +231,7 @@ export default function CommentThread({ postId, commentCount }: Props) {
               }}
             />
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={!input.trim() || posting}
               className="text-xs font-semibold px-3 py-1.5 cursor-pointer"
@@ -231,6 +249,17 @@ export default function CommentThread({ postId, commentCount }: Props) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Delete comment?"
+        message="This comment will be permanently removed."
+        confirmLabel="Delete"
+        loading={deleting}
+        error={deleteError}
+        onConfirm={confirmDeleteComment}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

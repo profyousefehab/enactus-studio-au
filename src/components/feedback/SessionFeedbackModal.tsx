@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import StickerIcon from '../ui/StickerIcon';
 import SketchCallout from '../ui/SketchCallout';
 import { useSessionFeedback } from '../../context/SessionFeedbackContext';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 
 const RATING_LABELS: Record<number, { text: string; color: string }> = {
   1: { text: 'Needs improvement 🌧️', color: 'var(--color-terracotta)' },
@@ -20,8 +21,12 @@ export default function SessionFeedbackModal() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  if (!isModalOpen || !feedbackSettings?.isOpen) return null;
+  const isOpen = Boolean(isModalOpen && feedbackSettings?.isOpen);
+  useFocusTrap(isOpen, modalRef, dismissModal);
+
+  if (!isOpen || !feedbackSettings) return null;
 
   const currentRating = hoverRating || rating;
   const activeRatingInfo = currentRating > 0 ? RATING_LABELS[currentRating] : null;
@@ -56,17 +61,21 @@ export default function SessionFeedbackModal() {
         backgroundColor: 'rgba(26, 51, 0, 0.45)',
         backdropFilter: 'blur(3px)',
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="feedback-modal-title"
+      onClick={dismissModal}
     >
       <div
-        className="w-full max-w-md rounded-2xl border-2 border-[var(--color-forest-ink)] overflow-hidden shadow-2xl relative transition-all transform animate-fadeIn"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-modal-title"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-2xl border-2 border-[var(--color-forest-ink)] overflow-hidden relative transition-all transform animate-fadeIn"
         style={{ backgroundColor: 'var(--color-cream-paper)' }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Washi Tape Accent on Top-Right */}
         <div
-          className="absolute -top-3.5 right-6 z-10 w-20 h-6 pointer-events-none shadow-xs -rotate-6"
+          className="absolute -top-3.5 right-6 z-10 w-20 h-6 pointer-events-none -rotate-6"
           style={{
             backgroundColor: 'rgba(255, 233, 92, 0.85)',
             border: '1px dashed rgba(26, 51, 0, 0.25)',
@@ -77,20 +86,20 @@ export default function SessionFeedbackModal() {
           /* ── Success Celebration Screen ── */
           <div className="p-8 text-center flex flex-col items-center justify-center gap-3">
             <div
-              className="w-16 h-16 rounded-full border-2 border-[var(--color-forest-ink)] flex items-center justify-center shadow-sm"
+              className="w-16 h-16 rounded-full border-2 border-[var(--color-forest-ink)] flex items-center justify-center"
               style={{ backgroundColor: 'var(--color-sticky-note-mint)' }}
             >
               <StickerIcon name="star" size={36} />
             </div>
             <h3
               className="text-2xl font-bold tracking-tight"
-              style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-forest-ink)' }}
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
             >
               Thank you for your feedback!
             </h3>
             <p
               className="text-sm font-medium"
-              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-pencil-gray)' }}
+              style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)', opacity: 0.7 }}
             >
               Your thoughts help make our beta sessions and creative workflows better.
             </p>
@@ -98,7 +107,7 @@ export default function SessionFeedbackModal() {
               <SketchCallout
                 text="feedback recorded privately ↩"
                 arrow="none"
-                color="#cb5521"
+                color="var(--color-terracotta)"
                 rotate="-rotate-1"
                 fontSize={22}
               />
@@ -115,14 +124,14 @@ export default function SessionFeedbackModal() {
                     className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-bold border border-[var(--color-forest-ink)]"
                     style={{ backgroundColor: 'var(--color-highlighter-yellow)', color: 'var(--color-forest-ink)' }}
                   >
-                    <span className="w-2 h-2 rounded-full bg-[#1a3300] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[var(--color-forest-ink)] animate-pulse" />
                     LIVE SESSION FEEDBACK
                   </span>
                 </div>
                 <h3
                   id="feedback-modal-title"
                   className="text-xl sm:text-2xl font-bold tracking-tight leading-snug"
-                  style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-forest-ink)' }}
+                  style={{ fontFamily: 'var(--font-inter)', color: 'var(--color-forest-ink)' }}
                 >
                   {feedbackSettings.sessionTitle || 'Session Feedback'}
                 </h3>
@@ -132,8 +141,9 @@ export default function SessionFeedbackModal() {
               <button
                 type="button"
                 onClick={dismissModal}
-                className="w-8 h-8 rounded-full border border-[var(--color-forest-ink)] flex items-center justify-center bg-white hover:bg-[var(--color-sticky-note-blush)] cursor-pointer shrink-0 transition-colors btn-spring"
+                className="w-10 h-10 rounded-full border border-[var(--color-forest-ink)] flex items-center justify-center bg-[var(--color-cream-paper)] hover:bg-[var(--color-sticky-note-blush)] cursor-pointer shrink-0 transition-colors btn-spring"
                 title="Dismiss for now (can reopen from menu)"
+                aria-label="Dismiss feedback modal"
               >
                 <Icon icon="doodle:close" width={16} height={16} style={{ color: 'var(--color-forest-ink)' }} />
               </button>

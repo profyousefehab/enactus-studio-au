@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, orderBy, limit, onSnapshot, type Timestamp } from 'firebase/firestore';
 import { Icon } from '@iconify/react';
 import { db } from '../../lib/firebase';
 import { useSession } from '../../context/SessionContext';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 
 interface PointEvent {
   id: string;
@@ -23,15 +24,9 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
   const navigate = useNavigate();
   const [events, setEvents] = useState<PointEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  useFocusTrap(open, modalRef, onClose);
 
   useEffect(() => {
     if (!open || !user) {
@@ -122,23 +117,23 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none profile-bricolage"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none"
       style={{
         backgroundColor: 'rgba(26, 51, 0, 0.45)',
         backdropFilter: 'blur(3px)',
-        fontFamily: 'var(--font-bricolage)',
-        letterSpacing: '-0.03em',
+        fontFamily: 'var(--font-inter)',
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="points-modal-title"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[380px] rounded-2xl bg-[#fcfaf5] border-2 border-[#1a3300] p-5 z-50 relative flex flex-col gap-4 shadow-xl animate-fadeIn profile-bricolage"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="points-modal-title"
+        tabIndex={-1}
+        className="w-full max-w-[380px] rounded-2xl bg-[var(--color-cream-paper)] border-2 border-[var(--color-forest-ink)] p-5 z-50 relative flex flex-col gap-4 animate-fadeIn"
         style={{
-          fontFamily: 'var(--font-bricolage)',
-          letterSpacing: '-0.03em',
+          fontFamily: 'var(--font-inter)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -147,14 +142,14 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
           <div className="flex items-center gap-2">
             <h3
               id="points-modal-title"
-              className="text-base font-bold text-[#1a3300] tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
+              className="text-base font-bold text-[var(--color-forest-ink)]"
+              style={{ fontFamily: 'var(--font-inter)' }}
             >
               Points History
             </h3>
             <span
-              className="text-xs font-bold px-2 py-0.5 rounded bg-[#ffe95c] border border-[#1a3300]/30 text-[#1a3300] tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
+              className="text-xs font-bold px-2 py-0.5 rounded bg-[var(--color-highlighter-yellow)] border border-[var(--color-forest-ink)]/30 text-[var(--color-forest-ink)]"
+              style={{ fontFamily: 'var(--font-mono)' }}
             >
               {points} pts
             </span>
@@ -163,7 +158,7 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#1a3300]/10 text-[#1a3300] cursor-pointer transition-colors btn-spring"
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--color-forest-ink)]/10 text-[var(--color-forest-ink)] cursor-pointer transition-colors btn-spring"
             aria-label="Close modal"
           >
             <Icon icon="doodle:close" width={14} height={14} />
@@ -174,15 +169,15 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
         <div className="flex flex-col gap-2 max-h-[260px] overflow-y-auto pr-1">
           {loading ? (
             <p
-              className="text-xs font-semibold text-center text-[#1a3300]/50 py-4 animate-pulse tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
+              className="text-xs font-semibold text-center text-[var(--color-forest-ink)]/50 py-4 animate-pulse"
+              style={{ fontFamily: 'var(--font-inter)' }}
             >
               Loading points...
             </p>
           ) : events.length === 0 ? (
             <p
-              className="text-xs text-center text-[#1a3300]/60 py-6 font-semibold tracking-[-0.03em]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
+              className="text-xs text-center text-[var(--color-forest-ink)]/60 py-6 font-medium"
+              style={{ fontFamily: 'var(--font-inter)' }}
             >
               No points logged yet
             </p>
@@ -192,29 +187,29 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
               return (
                 <div
                   key={evt.id}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-[#1a3300]/10 text-xs"
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[var(--color-cream-paper)] border border-[var(--color-forest-ink)]/15 text-xs"
                 >
                   <div className="min-w-0 flex-1">
                     <p
-                      className="font-bold text-[#1a3300] truncate tracking-[-0.03em]"
-                      style={{ fontFamily: 'var(--font-bricolage)' }}
+                      className="font-semibold text-[var(--color-forest-ink)] truncate"
+                      style={{ fontFamily: 'var(--font-inter)' }}
                     >
                       {evt.reason || 'Point Event'}
                     </p>
                     <p
-                      className="text-[10px] font-semibold text-[#1a3300]/50 mt-0.5 tracking-[-0.03em]"
-                      style={{ fontFamily: 'var(--font-bricolage)' }}
+                      className="text-[10px] font-medium text-[var(--color-forest-ink)]/55 mt-0.5"
+                      style={{ fontFamily: 'var(--font-mono)' }}
                     >
                       {formatDate(evt.createdAt)}
                     </p>
                   </div>
                   <span
-                    className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 tracking-[-0.03em] ${
+                    className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
                       isPositive
-                        ? 'bg-[#d5f5c2] text-[#1a3300] border-[#1a3300]/20'
-                        : 'bg-[#ffd5d5] text-[#cb5521] border-[#cb5521]/30'
+                        ? 'bg-[var(--color-sticky-note-mint)] text-[var(--color-forest-ink)] border-[var(--color-forest-ink)]/20'
+                        : 'bg-[rgba(203,85,33,0.12)] text-[var(--color-terracotta)] border-[var(--color-terracotta)]/30'
                     }`}
-                    style={{ fontFamily: 'var(--font-bricolage)' }}
+                    style={{ fontFamily: 'var(--font-mono)' }}
                   >
                     {isPositive ? `+${evt.amount}` : evt.amount}
                   </span>
@@ -228,8 +223,8 @@ export default function PointsHistoryModal({ open, onClose, points }: Props) {
         <button
           type="button"
           onClick={handleGoToGuidelines}
-          className="text-xs font-bold text-[#1a3300] underline text-center cursor-pointer hover:text-[#cb5521] transition-colors mt-1 tracking-[-0.03em]"
-          style={{ fontFamily: 'var(--font-bricolage)' }}
+          className="text-xs font-semibold text-[var(--color-forest-ink)] underline text-center cursor-pointer hover:text-[var(--color-terracotta)] transition-colors mt-1 min-h-[36px]"
+          style={{ fontFamily: 'var(--font-inter)' }}
         >
           Full rules in Guidelines →
         </button>
